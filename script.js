@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
@@ -27,49 +26,61 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     })(console.log);
 
-async function loadCSV() {
-    console.log('📌 loadCSV() が実行されました');
-    try {
-        const response = await fetch("/questions.csv");
-        console.log('📌 CSV を取得しました', response);
-        const text = await response.text();
-        console.log('📌 CSV の内容:\n' + text);
-        questions = parseCSV(text);
-        console.log('📌 パース後の questions:', questions);
-        initializeQuestions();
-    } catch (error) {
-        console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
-    }
-}
+    async function loadCSV() {
+        console.log('📌 loadCSV() が実行されました');
+        try {
+            const response = await fetch("/questions.csv");
 
+            if (!response.ok) {
+                throw new Error(`❌ HTTPエラー: ${response.status} ${response.statusText}`);
+            }
+
+            console.log('📌 CSV を取得しました', response);
+            const text = await response.text();
+            console.log('📌 CSV の内容:\n' + text);
+            questions = parseCSV(text);
+            console.log('📌 パース後の questions:', questions);
+            initializeQuestions();
+        } catch (error) {
+            console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
+        }
+    }
 
     function parseCSV(csvText) {
         console.log('📌 parseCSV() が実行されました');
-        const lines = csvText.split("\n");
+
+        // 改行コードを統一（\r\n でも \n でも対応できるようにする）
+        const lines = csvText.split(/\r?\n/);
         console.log('📌 CSV の行数:', lines.length);
-        
+
         if (lines.length < 2) {
             console.error('❌ CSV にデータがありません');
             return [];
         }
 
         const result = [];
+        const headers = lines[0].split(","); // ヘッダー行を取得
+
         for (let i = 1; i < lines.length; i++) {
-            let data = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            let data = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // カンマを適切に処理
             console.log('📌 パースされた行:', data);
-            if (data.length < 3) continue;
+            
+            if (data.length < headers.length) continue; // 空行はスキップ
 
             let questionObj = {
                 id: parseInt(data[0]),
-                type: data[1],
-                question: data[2],
-                choices: data[3] ? data[3].split(",") : [],
-                correct: data[4] === "true" ? true : data[4] === "false" ? false : data[4],
+                type: data[1].trim(),
+                question: data[2].trim(),
+                choices: data[3] ? data[3].replace(/(^"|"$)/g, '').split(",") : [], // 選択肢が "A,B,C,D" なら分割
+                correct: data[4] === "true" ? true : data[4] === "false" ? false : data[4].trim(),
                 relatedId: data[5] ? parseInt(data[5]) : null,
-                explanation: data[6]
+                explanation: data[6] ? data[6].trim() : ""
             };
+
             result.push(questionObj);
         }
+        
+        console.log('📌 パース後の questions:', result);
         return result;
     }
 
@@ -98,7 +109,7 @@ async function loadCSV() {
                 btn.onclick = () => checkAnswer(index === 0, questionObj);
                 document.getElementById("choices").appendChild(btn);
             });
-        } else if (questionObj.choices) {
+        } else if (questionObj.choices.length > 0) {
             questionObj.choices.forEach(choice => {
                 const btn = document.createElement("button");
                 btn.textContent = choice;
