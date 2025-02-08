@@ -49,16 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
 function parseCSV(csvText) {
     console.log('📌 parseCSV() が実行されました');
 
-    // 🔹 取得したCSVの改行コードを確認するために先頭100文字をログ出力
+    // 🔹 CSVの最初の100文字をログ出力（改行の状態をチェック）
     console.log('📌 CSV の先頭100文字:', csvText.slice(0, 100));
 
-    // 🔹 すべての改行コードを `\n` に統一（Windowsの `\r\n` も修正）
+    // 🔹 すべての `\r` を `\n` に統一（Windowsの `\r\n` も修正）
     csvText = csvText.replace(/\r/g, "\n");
 
-    // 🔹 もし改行がすべて `\n` に変換されているはずなのに行が1つしかない場合、強制的に修正
+    // 🔹 改行が全くない場合、カンマの後に強制改行を挿入
     if (!csvText.includes("\n")) {
-        console.error("❌ CSVの改行が消えています！データを修正します。");
-        csvText = csvText.replace(/ 1,/g, "\n1,"); // 1行目のデータを起点に強制改行
+        console.error("❌ CSVの改行が消えています！強制的に修正します。");
+        csvText = csvText.replace(/(\d+),/g, "\n$1,"); // 数字（id）＋カンマの後に改行
     }
 
     // 🔹 行ごとに分割
@@ -95,6 +95,7 @@ function parseCSV(csvText) {
     console.log('📌 パース後の questions:', result);
     return result;
 }
+
 
 
     function loadQuestion() {
