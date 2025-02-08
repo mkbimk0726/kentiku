@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建築作品記憶定着アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>建築作品記憶定着アプリ</h1>
+
+        <!-- スタートボタン -->
+        <button id="start-button">スタート</button>
+
+        <!-- クイズの本体（最初は非表示） -->
+        <div id="quiz-container" style="display: none;">
+            <p id="question-text"></p>
+            <div id="choices"></div>
+            <p id="result"></p>
+            <p id="explanation"></p>
+            <button id="next-question" style="display:none;">次の問題へ</button>
+        </div>
+
+        <!-- 終了画面（最初は非表示） -->
+        <div id="end-screen" style="display: none;">
+            <h2>クイズ終了！</h2>
+            <p id="score"></p>
+            <button id="restart-button">スタートに戻る</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

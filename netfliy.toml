@@ -1,0 +1,6 @@
+[[headers]]
+  for = "/*.csv"
+  [headers.values]
+    Content-Type = "text/csv; charset=utf-8"
+    Content-Disposition = "inline"
+    Access-Control-Allow-Origin = "*"
