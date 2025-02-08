@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadCSV() {
     console.log('📌 loadCSV() が実行されました');
     try {
-        const response = await fetch("https://your-netlify-url.netlify.app/questions.csv");
+        const response = await fetch("https://67a785af2e877686b37e9838--kentiku.netlify.app//questions.csv");
         console.log('📌 CSV を取得しました', response);
         const text = await response.text();
         console.log('📌 CSV の内容:\n' + text);
