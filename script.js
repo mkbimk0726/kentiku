@@ -27,20 +27,21 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     })(console.log);
 
-    async function loadCSV() {
-        console.log('📌 loadCSV() が実行されました');
-        try {
-            const response = await fetch("questions.csv");
-            console.log('📌 CSV を取得しました', response);
-            const text = await response.text();
-            console.log('📌 CSV の内容:', text);
-            questions = parseCSV(text);
-            console.log('📌 パース後の questions:', questions);
-            initializeQuestions();
-        } catch (error) {
-            console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
-        }
+async function loadCSV() {
+    console.log('📌 loadCSV() が実行されました');
+    try {
+        const response = await fetch("https://your-netlify-url.netlify.app/questions.csv");
+        console.log('📌 CSV を取得しました', response);
+        const text = await response.text();
+        console.log('📌 CSV の内容:\n' + text);
+        questions = parseCSV(text);
+        console.log('📌 パース後の questions:', questions);
+        initializeQuestions();
+    } catch (error) {
+        console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
     }
+}
+
 
     function parseCSV(csvText) {
         console.log('📌 parseCSV() が実行されました');
