@@ -7,53 +7,40 @@ body {
     flex-direction: column;
     justify-content: center; /* 縦方向の中央揃え */
     align-items: center; /* 横方向の中央揃え */
+    padding: 10px; /* スマホの端との余白 */
 }
 
+/* 🔹 コンテンツ全体を大きくする */
 .container {
-    width: 80%;
-    max-width: 600px;
+    width: 95%; /* スマホ幅にフィット */
+    max-width: 800px; /* PC用の上限 */
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* 🔵 青くなるボタンのデザイン */
-button {
-    margin-top: 10px;
-    padding: 15px 20px;
-    font-size: 20px;
-    line-height: 1.5;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* スタートボタンの中央固定 */
+/* 🔹 スタートボタンの位置とサイズ */
 #start-button {
     display: block;
     margin: auto;
+    font-size: 28px; /* 文字サイズUP */
+    padding: 20px;
+    width: 80%; /* 横幅を広げる */
 }
 
-/* 選択肢ボタン */
+/* 🔹 選択肢ボタンのサイズを大きく */
 .choice-btn {
     display: block;
     width: 100%;
-    margin: 8px 0;
-    padding: 15px;
-    font-size: 20px;
+    margin: 10px 0;
+    padding: 20px;
+    font-size: 28px; /* 文字サイズを倍に */
     cursor: pointer;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     transition: background 0.3s ease;
 }
 
@@ -61,29 +48,24 @@ button:hover {
     background-color: #0056b3;
 }
 
-/* 質問テキスト */
+/* 🔹 問題テキストを大きく */
 #question-text {
-    font-size: 24px;
+    font-size: 32px; /* 文字サイズを2倍に */
     font-weight: bold;
     line-height: 1.6;
 }
 
-/* 説明テキスト */
+/* 🔹 説明文も大きく */
 #explanation {
-    font-size: 18px;
+    font-size: 24px; /* 文字サイズをUP */
     line-height: 1.6;
     color: #555;
     margin-top: 15px;
 }
 
-/* 終了画面 */
-#end-screen {
-    display: none;
-    margin-top: 20px;
-}
-
+/* 🔹 終了画面のスコアも見やすく */
 #score {
-    font-size: 22px;
+    font-size: 28px;
     font-weight: bold;
     color: #333;
 }
