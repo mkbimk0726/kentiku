@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
             logDiv.style.position = "fixed";
             logDiv.style.bottom = "10px";
             logDiv.style.left = "10px";
+            logDiv.style.width = "90%";
+            logDiv.style.maxHeight = "200px";
+            logDiv.style.overflowY = "auto";
             logDiv.style.background = "rgba(0, 0, 0, 0.8)";
             logDiv.style.color = "white";
             logDiv.style.padding = "10px";
@@ -37,11 +40,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log('📌 CSV を取得しました', response);
             const text = await response.text();
-            console.log('📌 CSV の内容:\n' + text);
+            console.log('📌 CSV の内容（先頭100文字）:\n' + text.slice(0, 100));
 
-            // 🔹 PapaParse で CSV を解析
+            // 🔹 `PapaParse` で CSV を解析
             questions = parseCSVWithPapa(text);
             console.log('📌 パース後の questions:', questions);
+
+            if (questions.length === 0) {
+                console.error('❌ CSVのパース結果が空です。フォーマットを確認してください。');
+                return;
+            }
 
             initializeQuestions();
         } catch (error) {
