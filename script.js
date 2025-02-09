@@ -45,23 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
         }
     }
-
-function parseCSV(csvText) {
+    function parseCSV(csvText) {
     console.log('📌 parseCSV() が実行されました');
 
-    // 🔹 CSVの最初の100文字をログ出力（改行の状態をチェック）
+    // 🔹 CSVの最初の100文字をログ出力（データの状態を確認）
     console.log('📌 CSV の先頭100文字:', csvText.slice(0, 100));
 
-    // 🔹 すべての `\r` を `\n` に統一（Windowsの `\r\n` も修正）
+    // 🔹 改行コードを `\n` に統一（Windowsの `\r\n` も修正）
     csvText = csvText.replace(/\r/g, "\n");
 
-    // 🔹 改行が全くない場合、カンマの後に強制改行を挿入
-    if (!csvText.includes("\n")) {
-        console.error("❌ CSVの改行が消えています！強制的に修正します。");
-        csvText = csvText.replace(/(\d+),/g, "\n$1,"); // 数字（id）＋カンマの後に改行
-    }
-
-    // 🔹 行ごとに分割
+    // 🔹 CSVの各行を配列に分割
     const lines = csvText.trim().split("\n");
     console.log('📌 CSV の行数:', lines.length);
 
@@ -72,12 +65,22 @@ function parseCSV(csvText) {
 
     const result = [];
     const headers = lines[0].split(","); // ヘッダー行を取得
+    console.log('📌 ヘッダー:', headers);
 
     for (let i = 1; i < lines.length; i++) {
-        let data = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // カンマを適切に処理
+        // 🛠 デバッグ用に行の内容を出力
+        console.log(`📌 行 ${i} の内容 (元のまま):`, lines[i]);
+
+        // 🛠 カンマ区切りを適切に処理（ダブルクォート内のカンマは無視）
+        let data = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+
+        // 🛠 分割後のデータをデバッグ出力
         console.log(`📌 パースされた行 ${i}:`, data);
-        
-        if (data.length < headers.length) continue; // 空行はスキップ
+
+        if (!data || data.length < headers.length) {
+            console.error(`❌ データのフォーマットが正しくない（行 ${i}）:`, data);
+            continue;
+        }
 
         let questionObj = {
             id: parseInt(data[0]),
@@ -94,8 +97,7 @@ function parseCSV(csvText) {
     
     console.log('📌 パース後の questions:', result);
     return result;
-}
-
+    }
 
 
     function loadQuestion() {
