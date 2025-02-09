@@ -38,67 +38,46 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log('📌 CSV を取得しました', response);
             const text = await response.text();
             console.log('📌 CSV の内容:\n' + text);
-            questions = parseCSV(text);
+
+            // 🔹 PapaParse で CSV を解析
+            questions = parseCSVWithPapa(text);
             console.log('📌 パース後の questions:', questions);
+
             initializeQuestions();
         } catch (error) {
             console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
         }
     }
-    function parseCSV(csvText) {
-    console.log('📌 parseCSV() が実行されました');
 
-    // 🔹 CSVの最初の100文字をログ出力（データの状態を確認）
-    console.log('📌 CSV の先頭100文字:', csvText.slice(0, 100));
+    // **✅ `PapaParse` を使った CSV パース関数**
+    function parseCSVWithPapa(csvText) {
+        console.log('📌 parseCSVWithPapa() が実行されました');
 
-    // 🔹 改行コードを `\n` に統一（Windowsの `\r\n` も修正）
-    csvText = csvText.replace(/\r/g, "\n");
+        let parsedData = Papa.parse(csvText, {
+            header: true,  // 🔹 ヘッダー行をキーとして解析
+            skipEmptyLines: true, // 🔹 空行を無視
+        });
 
-    // 🔹 CSVの各行を配列に分割
-    const lines = csvText.trim().split("\n");
-    console.log('📌 CSV の行数:', lines.length);
+        console.log('📌 PapaParse の解析結果:', parsedData);
 
-    if (lines.length < 2) {
-        console.error('❌ CSV にデータがありません');
-        return [];
-    }
-
-    const result = [];
-    const headers = lines[0].split(","); // ヘッダー行を取得
-    console.log('📌 ヘッダー:', headers);
-
-    for (let i = 1; i < lines.length; i++) {
-        // 🛠 デバッグ用に行の内容を出力
-        console.log(`📌 行 ${i} の内容 (元のまま):`, lines[i]);
-
-        // 🛠 カンマ区切りを適切に処理（ダブルクォート内のカンマは無視）
-        let data = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-
-        // 🛠 分割後のデータをデバッグ出力
-        console.log(`📌 パースされた行 ${i}:`, data);
-
-        if (!data || data.length < headers.length) {
-            console.error(`❌ データのフォーマットが正しくない（行 ${i}）:`, data);
-            continue;
+        if (parsedData.errors.length > 0) {
+            console.error('❌ PapaParse のエラー:', parsedData.errors);
+            return [];
         }
 
-        let questionObj = {
-            id: parseInt(data[0]),
-            type: data[1].trim(),
-            question: data[2].trim(),
-            choices: data[3] ? data[3].replace(/(^"|"$)/g, '').split(",") : [], // 選択肢の `"` を除去
-            correct: data[4] === "true" ? true : data[4] === "false" ? false : data[4].trim(),
-            relatedId: data[5] ? parseInt(data[5]) : null,
-            explanation: data[6] ? data[6].trim() : ""
-        };
+        let result = parsedData.data.map(row => ({
+            id: parseInt(row.id),
+            type: row.type.trim(),
+            question: row.question.trim(),
+            choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
+            correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
+            relatedId: row.relatedId ? parseInt(row.relatedId) : null,
+            explanation: row.explanation ? row.explanation.trim() : ""
+        }));
 
-        result.push(questionObj);
+        console.log('📌 パース後の questions:', result);
+        return result;
     }
-    
-    console.log('📌 パース後の questions:', result);
-    return result;
-    }
-
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
