@@ -58,34 +58,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // **✅ `PapaParse` を使った CSV パース関数**
-    function parseCSVWithPapa(csvText) {
-        console.log('📌 parseCSVWithPapa() が実行されました');
+function parseCSVWithPapa(csvText) {
+    console.log('📌 parseCSVWithPapa() が実行されました');
 
-        let parsedData = Papa.parse(csvText, {
-            header: true,  // 🔹 ヘッダー行をキーとして解析
-            skipEmptyLines: true, // 🔹 空行を無視
-        });
+    let parsedData = Papa.parse(csvText, {
+        header: true,  // 🔹 ヘッダー行をキーとして解析
+        skipEmptyLines: true, // 🔹 空行を無視
+    });
 
-        console.log('📌 PapaParse の解析結果:', parsedData);
+    console.log('📌 PapaParse の解析結果:', parsedData);
 
-        if (parsedData.errors.length > 0) {
-            console.error('❌ PapaParse のエラー:', parsedData.errors);
-            return [];
-        }
-
-        let result = parsedData.data.map(row => ({
-            id: parseInt(row.id),
-            type: row.type.trim(),
-            question: row.question.trim(),
-            choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
-            correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
-            relatedId: row.relatedId ? parseInt(row.relatedId) : null,
-            explanation: row.explanation ? row.explanation.trim() : ""
-        }));
-
-        console.log('📌 パース後の questions:', result);
-        return result;
+    if (parsedData.errors.length > 0) {
+        console.error('❌ PapaParse のエラー:', parsedData.errors);
+        parsedData.errors.forEach(error => console.log(`📌 PapaParse エラー詳細: ${error.message} (行 ${error.row})`));
+        return [];
     }
+
+    let result = parsedData.data.map(row => ({
+        id: parseInt(row.id),
+        type: row.type ? row.type.trim() : "",
+        question: row.question ? row.question.trim() : "",
+        choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
+        correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
+        relatedId: row.relatedId ? parseInt(row.relatedId) : null,
+        explanation: row.explanation ? row.explanation.trim() : ""
+    }));
+
+    console.log('📌 パース後の questions:', result);
+    return result;
+}
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
