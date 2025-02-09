@@ -1,4 +1,4 @@
-/* 🔹 全体の基本スタイル */
+/* 🔹 全体のフォントサイズを統一して大きく */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
@@ -10,12 +10,19 @@ body {
 /* 🔹 コンテンツ全体を中央に配置 */
 .container {
     width: 90%;
-    max-width: 800px; /* PCでも見やすいサイズ */
+    max-width: 1000px; /* PCでもスマホでも大きく見やすく */
     margin: 50px auto;
     background: white;
-    padding: 40px; /* 余白を広めに */
+    padding: 50px; /* 🔥 余白をさらに増やす */
     border-radius: 12px;
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 🔹 タイトル（h1）の文字を大きくする */
+h1 {
+    font-size: 72px; /* 🔥 タイトルの文字をかなり大きく */
+    font-weight: bold;
+    margin-bottom: 40px;
 }
 
 /* 🔹 すべてのボタンを統一（青色 + 間隔を広げる） */
@@ -23,8 +30,8 @@ button {
     display: block;
     width: 90%; /* 画面幅にフィット */
     margin: 30px auto; /* 🔥 ボタン間の間隔を広げる */
-    padding: 40px; /* 🔥 高さをさらに増やす */
-    font-size: 48px; /* 文字サイズを大きく */
+    padding: 50px; /* 🔥 高さをさらに増やす */
+    font-size: 64px; /* 🔥 文字を超特大に */
     cursor: pointer;
     border: none;
     border-radius: 12px;
@@ -41,9 +48,9 @@ button:hover {
 .choice-btn {
     display: block;
     width: 100%;
-    margin: 30px 0; /* 🔥 ボタンの間隔を広げる */
-    padding: 40px; /* 🔥 高さをさらに増やす */
-    font-size: 48px;
+    margin: 40px 0; /* 🔥 ボタンの間隔を広げる */
+    padding: 50px; /* 🔥 高さをさらに増やす */
+    font-size: 64px; /* 🔥 文字を超特大に */
     background-color: #007bff; /* 🔵 青 */
     color: white;
     border: none;
@@ -54,18 +61,25 @@ button:hover {
     background-color: #0056b3; /* 🔵 少し暗い青 */
 }
 
-/* 🔹 問題文の文字サイズを2倍に */
+/* 🔹 問題文の文字サイズを超特大に */
 #question-text {
-    font-size: 64px; /* かなり大きく */
+    font-size: 80px; /* 🔥 さらに大きく */
     font-weight: bold;
-    margin-bottom: 40px; /* 🔥 問題文とボタンの間隔を広げる */
+    margin-bottom: 50px; /* 🔥 問題文とボタンの間隔を広げる */
+}
+
+/* 🔹 結果の文字サイズも大きく */
+#result {
+    font-size: 64px; /* 🔥 大きく */
+    font-weight: bold;
+    color: #ff4500; /* 赤で強調 */
 }
 
 /* 🔹 解説の文字サイズを大きく */
 #explanation {
-    font-size: 36px;
+    font-size: 48px;
     color: #555;
-    margin-top: 30px; /* 🔥 上下の余白を広げる */
+    margin-top: 40px; /* 🔥 上下の余白を広げる */
 }
 
 /* 🔹 クイズ画面の中央配置 */
@@ -77,12 +91,12 @@ button:hover {
 /* 🔹 終了画面 */
 #end-screen {
     display: none;
-    margin-top: 30px;
+    margin-top: 40px;
 }
 
 #score {
-    font-size: 48px;
+    font-size: 64px;
     font-weight: bold;
     color: #333;
-    margin-top: 30px;
+    margin-top: 40px;
 }
