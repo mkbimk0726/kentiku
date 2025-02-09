@@ -3,23 +3,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function logToScreen(message) {
         let logDiv = document.getElementById("log");
+        
         if (!logDiv) {
             logDiv = document.createElement("div");
             logDiv.id = "log";
             logDiv.style.position = "fixed";
-            logDiv.style.bottom = "10px";
-            logDiv.style.left = "10px";
-            logDiv.style.width = "90%";
-            logDiv.style.maxHeight = "200px";
-            logDiv.style.overflowY = "auto";
-            logDiv.style.background = "rgba(0, 0, 0, 0.8)";
+            logDiv.style.top = "10px";  // ✅ 画面の上部に表示
+            logDiv.style.right = "10px";
+            logDiv.style.width = "300px";
+            logDiv.style.height = "200px";  // ✅ ログの最大高さを設定（スクロール可能にする）
+            logDiv.style.overflowY = "auto";  // ✅ スクロール可能に
+            logDiv.style.background = "rgba(0, 0, 0, 0.8)";  // ✅ 半透明の黒背景
             logDiv.style.color = "white";
             logDiv.style.padding = "10px";
             logDiv.style.fontSize = "12px";
             logDiv.style.zIndex = "9999";
+            logDiv.style.borderRadius = "5px";
+            logDiv.style.boxShadow = "0px 0px 10px rgba(255, 255, 255, 0.5)";
             document.body.appendChild(logDiv);
         }
-        logDiv.innerHTML += message + "<br>";
+
+        // ✅ 最新のログを上に追加（新しいログが上に表示される）
+        let logEntry = document.createElement("div");
+        logEntry.textContent = message;
+        logDiv.insertBefore(logEntry, logDiv.firstChild);
     }
 
     console.log = (function(origConsoleLog) {
@@ -40,53 +47,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log('📌 CSV を取得しました', response);
             const text = await response.text();
-            console.log('📌 CSV の内容（先頭100文字）:\n' + text.slice(0, 100));
-
-            // 🔹 `PapaParse` で CSV を解析
+            console.log('📌 CSV の内容（先頭100文字）:', text.slice(0, 100));
             questions = parseCSVWithPapa(text);
             console.log('📌 パース後の questions:', questions);
-
-            if (questions.length === 0) {
-                console.error('❌ CSVのパース結果が空です。フォーマットを確認してください。');
-                return;
-            }
-
             initializeQuestions();
         } catch (error) {
             console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
         }
     }
 
-    // **✅ `PapaParse` を使った CSV パース関数**
-function parseCSVWithPapa(csvText) {
-    console.log('📌 parseCSVWithPapa() が実行されました');
+    function parseCSVWithPapa(csvText) {
+        console.log('📌 parseCSVWithPapa() が実行されました');
 
-    let parsedData = Papa.parse(csvText, {
-        header: true,  // 🔹 ヘッダー行をキーとして解析
-        skipEmptyLines: true, // 🔹 空行を無視
-    });
+        let parsedData = Papa.parse(csvText, {
+            header: true,  // ✅ ヘッダー行をキーとして解析
+            skipEmptyLines: true, // ✅ 空行を無視
+            dynamicTyping: true // ✅ 自動型変換
+        });
 
-    console.log('📌 PapaParse の解析結果:', parsedData);
+        console.log('📌 PapaParse の解析結果:', parsedData);
 
-    if (parsedData.errors.length > 0) {
-        console.error('❌ PapaParse のエラー:', parsedData.errors);
-        parsedData.errors.forEach(error => console.log(`📌 PapaParse エラー詳細: ${error.message} (行 ${error.row})`));
-        return [];
+        if (parsedData.errors.length > 0) {
+            console.error('❌ PapaParse のエラー:', parsedData.errors);
+            parsedData.errors.forEach(error => {
+                console.log(`📌 PapaParse エラー詳細: ${error.message} (行 ${error.row})`);
+            });
+            return [];
+        }
+
+        if (!parsedData.data || parsedData.data.length === 0) {
+            console.error('❌ CSV の解析結果が空です！');
+            return [];
+        }
+
+        let result = parsedData.data.map(row => ({
+            id: parseInt(row.id),
+            type: row.type ? row.type.trim() : "",
+            question: row.question ? row.question.trim() : "",
+            choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
+            correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
+            relatedId: row.relatedId ? parseInt(row.relatedId) : null,
+            explanation: row.explanation ? row.explanation.trim() : ""
+        }));
+
+        console.log('📌 パース後の questions:', result);
+        return result;
     }
-
-    let result = parsedData.data.map(row => ({
-        id: parseInt(row.id),
-        type: row.type ? row.type.trim() : "",
-        question: row.question ? row.question.trim() : "",
-        choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
-        correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
-        relatedId: row.relatedId ? parseInt(row.relatedId) : null,
-        explanation: row.explanation ? row.explanation.trim() : ""
-    }));
-
-    console.log('📌 パース後の questions:', result);
-    return result;
-}
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
