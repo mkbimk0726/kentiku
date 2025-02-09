@@ -8,18 +8,18 @@ document.addEventListener("DOMContentLoaded", () => {
             logDiv = document.createElement("div");
             logDiv.id = "log";
             logDiv.style.position = "fixed";
-            logDiv.style.top = "10px";  // ✅ 画面の上部に表示
-            logDiv.style.right = "10px";
-            logDiv.style.width = "300px";
-            logDiv.style.height = "200px";  // ✅ ログの最大高さを設定（スクロール可能にする）
+            logDiv.style.top = "20px";  // ✅ 画面の上部に表示
+            logDiv.style.right = "20px";
+            logDiv.style.width = "350px";  // ✅ サイズを大きく
+            logDiv.style.height = "250px";  // ✅ ログの高さも調整
             logDiv.style.overflowY = "auto";  // ✅ スクロール可能に
-            logDiv.style.background = "rgba(0, 0, 0, 0.8)";  // ✅ 半透明の黒背景
+            logDiv.style.background = "rgba(0, 0, 0, 0.85)";  // ✅ 半透明の黒背景
             logDiv.style.color = "white";
-            logDiv.style.padding = "10px";
-            logDiv.style.fontSize = "12px";
+            logDiv.style.padding = "15px";  // ✅ 余白を広めに
+            logDiv.style.fontSize = "14px";  // ✅ 文字サイズUP
             logDiv.style.zIndex = "9999";
-            logDiv.style.borderRadius = "5px";
-            logDiv.style.boxShadow = "0px 0px 10px rgba(255, 255, 255, 0.5)";
+            logDiv.style.borderRadius = "8px";
+            logDiv.style.boxShadow = "0px 0px 12px rgba(255, 255, 255, 0.6)";
             document.body.appendChild(logDiv);
         }
 
@@ -79,6 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error('❌ CSV の解析結果が空です！');
             return [];
         }
+
+        // **データの最初の 5 行をログに表示**
+        console.log('📌 CSV の先頭 5 行:', parsedData.data.slice(0, 5));
 
         let result = parsedData.data.map(row => ({
             id: parseInt(row.id),
