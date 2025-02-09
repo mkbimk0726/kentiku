@@ -1,25 +1,69 @@
-@media (max-width: 600px) {
-    body {
-        font-size: 18px; /* 小さい画面ではフォントを大きく */
-    }
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+}
 
-    .container {
-        width: 95%; /* スマホでは横幅を広げる */
-        padding: 30px;
-    }
+.container {
+    width: 80%;
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
 
-    .choice-btn {
-        font-size: 20px; /* 選択肢ボタンを大きく */
-        padding: 15px;
-    }
+/* 🔵 青くなるボタンのデザイン */
+button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #007bff; /* 明るい青 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
 
-    #question-text {
-        font-size: 22px; /* 問題文を大きく */
-    }
+button:hover {
+    background-color: #0056b3; /* 少し暗めの青 */
+}
 
-    #result {
-        font-size: 18px;
-        font-weight: bold;
-        color: #ff0000;
-    }
+.choice-btn {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.choice-btn:hover {
+    background-color: #0056b3;
+}
+
+/* 説明テキスト */
+#explanation {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+}
+
+/* 終了画面 */
+#end-screen {
+    display: none;
+    margin-top: 20px;
+}
+
+#score {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
 }
