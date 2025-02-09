@@ -1,158 +1,130 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
+    // ✅ デバッグメッセージを非表示にする（CSSで display: none; を適用）
     function logToScreen(message) {
         let logDiv = document.getElementById("log");
-        if (!logDiv) {
-            logDiv = document.createElement("div");
-            logDiv.id = "log";
-            logDiv.style.position = "fixed";
-            logDiv.style.top = "10px";
-            logDiv.style.right = "10px";
-            logDiv.style.width = "300px";
-            logDiv.style.maxHeight = "250px";
-            logDiv.style.overflowY = "auto";
-            logDiv.style.background = "rgba(0, 0, 0, 0.8)";
-            logDiv.style.color = "white";
-            logDiv.style.padding = "10px";
-            logDiv.style.fontSize = "12px";
-            logDiv.style.zIndex = "9999";
-            document.body.appendChild(logDiv);
-        }
-        logDiv.innerHTML += "📌 " + message + "<br>";
+        if (!logDiv) return; // UIには出さない
+        logDiv.innerHTML += message + "<br>";
     }
 
     console.log = (function(origConsoleLog) {
         return function(message) {
             origConsoleLog(message);
-            logToScreen(JSON.stringify(message, null, 2));
+            logToScreen(message); // UIには出さず、ログ記録
         };
     })(console.log);
 
     let questions = [];
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
         try {
             const response = await fetch("/questions.csv");
-
-            if (!response.ok) {
-                throw new Error(`❌ HTTPエラー: ${response.status} ${response.statusText}`);
-            }
-
             const text = await response.text();
-            console.log('📌 CSV を取得しました');
-            console.log('📌 CSV の内容（先頭100文字）:', text.slice(0, 100));
-
-            questions = parseCSVWithPapa(text);
-
+            console.log('📌 CSV を取得しました:', text.slice(0, 100)); // 先頭100文字のみ表示
+            questions = parseCSV(text);
             console.log('📌 パース後の questions:', questions);
-
-            if (questions.length === 0) {
-                console.error('❌ パース後の questions が空です！');
-                return;
-            }
-
             initializeQuestions();
         } catch (error) {
-            console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
+            console.error('❌ CSV の読み込みエラー:', error);
         }
     }
 
-    function parseCSVWithPapa(csvText) {
-        console.log('📌 parseCSVWithPapa() が実行されました');
+    function parseCSV(csvText) {
+        console.log('📌 parseCSV() が実行されました');
+        let result = [];
+        let parsed = Papa.parse(csvText, { header: true });
 
-        const result = Papa.parse(csvText, {
-            header: true,  // ヘッダーをキーとして扱う
-            skipEmptyLines: true
-        });
-
-        console.log('📌 PapaParse の解析結果:', result);
-
-        if (result.errors.length > 0) {
-            console.error('❌ CSV 解析エラー:', result.errors);
+        if (parsed.errors.length > 0) {
+            console.error("❌ CSV パースエラー:", parsed.errors);
         }
 
-        return result.data;
+        parsed.data.forEach(row => {
+            if (!row.id || !row.question) return; // 無効な行はスキップ
+            result.push({
+                id: parseInt(row.id),
+                type: row.type.trim(),
+                question: row.question.trim(),
+                choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
+                correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
+                relatedId: row.relatedId ? parseInt(row.relatedId) : null,
+                explanation: row.explanation ? row.explanation.trim() : ""
+            });
+        });
+
+        console.log('📌 パース後の questions:', result);
+        return result;
     }
 
     function initializeQuestions() {
-        console.log('📌 initializeQuestions() が実行されました');
-
-        if (questions.length === 0) {
-            console.error('❌ initializeQuestions(): questions が空です！');
-            return;
-        }
-
-        shuffleArray(questions);
+        currentQuestionIndex = 0;
+        correctAnswers = 0;
         loadQuestion();
-    }
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
     }
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
-        console.log('📌 現在の questions:', questions);
-
-        if (questions.length === 0) {
-            console.error('❌ questions 配列が空です！');
+        if (currentQuestionIndex >= questions.length) {
+            showEndScreen();
             return;
         }
 
-        const questionObj = questions.shift();
-        console.log('📌 選ばれた問題:', questionObj);
+        const questionObj = questions[currentQuestionIndex];
+        console.log('📌 出題:', questionObj);
 
         document.getElementById("question-text").textContent = questionObj.question;
         document.getElementById("choices").innerHTML = "";
         document.getElementById("result").textContent = "";
         document.getElementById("explanation").textContent = "";
+        document.getElementById("next-question").style.display = "none";
 
         if (questionObj.type === "truefalse") {
             ["〇", "✕"].forEach((option, index) => {
                 const btn = document.createElement("button");
                 btn.textContent = option;
                 btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0, questionObj);
+                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj); // 🔥 修正（〇 = true、✕ = false）
                 document.getElementById("choices").appendChild(btn);
             });
-        } else if (questionObj.choices) {
-            let choicesArray = questionObj.choices.split(",");
-            choicesArray.forEach(choice => {
+        } else if (questionObj.choices.length > 0) {
+            questionObj.choices.forEach(choice => {
                 const btn = document.createElement("button");
-                btn.textContent = choice.trim();
+                btn.textContent = choice;
                 btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice.trim(), questionObj);
+                btn.onclick = () => checkAnswer(choice, questionObj);
                 document.getElementById("choices").appendChild(btn);
             });
         }
     }
 
     function checkAnswer(userAnswer, questionObj) {
-        console.log('📌 checkAnswer() が呼び出されました', userAnswer, questionObj);
+        console.log('📌 checkAnswer() が実行されました', userAnswer, questionObj);
         let isCorrect = userAnswer === questionObj.correct;
 
-        if (isCorrect) {
-            console.log('✅ 正解！');
-            document.getElementById("result").textContent = "正解！";
-        } else {
-            console.log('❌ 不正解...');
-            document.getElementById("result").textContent = "不正解...";
-        }
-
+        document.getElementById("result").textContent = isCorrect ? "正解！" : "不正解...";
         document.getElementById("explanation").textContent = questionObj.explanation;
         document.getElementById("choices").innerHTML = "";
         document.getElementById("next-question").style.display = "block";
+
+        if (isCorrect) correctAnswers++;
+
+        currentQuestionIndex++;
+    }
+
+    function showEndScreen() {
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
         console.log('📌 スタートボタンが押されました');
         document.getElementById("start-button").style.display = "none";
         document.getElementById("quiz-container").style.display = "block";
+        document.getElementById("end-screen").style.display = "none";
         loadCSV();
     });
 
