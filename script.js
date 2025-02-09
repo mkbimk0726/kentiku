@@ -3,37 +3,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function logToScreen(message) {
         let logDiv = document.getElementById("log");
-        
         if (!logDiv) {
             logDiv = document.createElement("div");
             logDiv.id = "log";
             logDiv.style.position = "fixed";
-            logDiv.style.top = "20px";  
-            logDiv.style.right = "20px";
-            logDiv.style.width = "400px";  
-            logDiv.style.height = "300px";  
-            logDiv.style.overflowY = "auto";  
-            logDiv.style.background = "rgba(0, 0, 0, 0.85)";  
+            logDiv.style.top = "10px";
+            logDiv.style.right = "10px";
+            logDiv.style.width = "300px";
+            logDiv.style.maxHeight = "250px";
+            logDiv.style.overflowY = "auto";
+            logDiv.style.background = "rgba(0, 0, 0, 0.8)";
             logDiv.style.color = "white";
-            logDiv.style.padding = "15px";  
-            logDiv.style.fontSize = "14px";  
+            logDiv.style.padding = "10px";
+            logDiv.style.fontSize = "12px";
             logDiv.style.zIndex = "9999";
-            logDiv.style.borderRadius = "8px";
-            logDiv.style.boxShadow = "0px 0px 12px rgba(255, 255, 255, 0.6)";
             document.body.appendChild(logDiv);
         }
-
-        let logEntry = document.createElement("div");
-        logEntry.textContent = message;
-        logDiv.insertBefore(logEntry, logDiv.firstChild);
+        logDiv.innerHTML += "📌 " + message + "<br>";
     }
 
     console.log = (function(origConsoleLog) {
         return function(message) {
             origConsoleLog(message);
-            logToScreen(message);
+            logToScreen(JSON.stringify(message, null, 2));
         };
     })(console.log);
+
+    let questions = [];
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
@@ -44,17 +40,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(`❌ HTTPエラー: ${response.status} ${response.statusText}`);
             }
 
-            console.log('📌 CSV を取得しました', response);
             const text = await response.text();
+            console.log('📌 CSV を取得しました');
             console.log('📌 CSV の内容（先頭100文字）:', text.slice(0, 100));
 
             questions = parseCSVWithPapa(text);
 
+            console.log('📌 パース後の questions:', questions);
+
             if (questions.length === 0) {
                 console.error('❌ パース後の questions が空です！');
+                return;
             }
 
-            console.log('📌 パース後の questions:', questions);
             initializeQuestions();
         } catch (error) {
             console.error('❌ CSV の読み込み中にエラーが発生しました:', error);
@@ -64,38 +62,37 @@ document.addEventListener("DOMContentLoaded", () => {
     function parseCSVWithPapa(csvText) {
         console.log('📌 parseCSVWithPapa() が実行されました');
 
-        let parsedData = Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            dynamicTyping: true
+        const result = Papa.parse(csvText, {
+            header: true,  // ヘッダーをキーとして扱う
+            skipEmptyLines: true
         });
 
-        console.log('📌 PapaParse の解析結果:', parsedData);
+        console.log('📌 PapaParse の解析結果:', result);
 
-        if (parsedData.errors.length > 0) {
-            console.error('❌ PapaParse のエラー:', parsedData.errors);
-            parsedData.errors.forEach(error => {
-                console.log(`📌 PapaParse エラー詳細: ${error.message} (行 ${error.row})`);
-            });
-            return [];
+        if (result.errors.length > 0) {
+            console.error('❌ CSV 解析エラー:', result.errors);
         }
 
-        if (!parsedData.data || parsedData.data.length === 0) {
-            console.error('❌ CSV の解析結果が空です！');
-            return [];
+        return result.data;
+    }
+
+    function initializeQuestions() {
+        console.log('📌 initializeQuestions() が実行されました');
+
+        if (questions.length === 0) {
+            console.error('❌ initializeQuestions(): questions が空です！');
+            return;
         }
 
-        console.log('📌 CSV の先頭 5 行:', parsedData.data.slice(0, 5));
+        shuffleArray(questions);
+        loadQuestion();
+    }
 
-        return parsedData.data.map(row => ({
-            id: parseInt(row.id),
-            type: row.type ? row.type.trim() : "",
-            question: row.question ? row.question.trim() : "",
-            choices: row.choices ? row.choices.replace(/(^"|"$)/g, '').split(",") : [],
-            correct: row.correct === "true" ? true : row.correct === "false" ? false : row.correct.trim(),
-            relatedId: row.relatedId ? parseInt(row.relatedId) : null,
-            explanation: row.explanation ? row.explanation.trim() : ""
-        }));
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 
     function loadQuestion() {
@@ -123,12 +120,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.onclick = () => checkAnswer(index === 0, questionObj);
                 document.getElementById("choices").appendChild(btn);
             });
-        } else if (questionObj.choices.length > 0) {
-            questionObj.choices.forEach(choice => {
+        } else if (questionObj.choices) {
+            let choicesArray = questionObj.choices.split(",");
+            choicesArray.forEach(choice => {
                 const btn = document.createElement("button");
-                btn.textContent = choice;
+                btn.textContent = choice.trim();
                 btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice, questionObj);
+                btn.onclick = () => checkAnswer(choice.trim(), questionObj);
                 document.getElementById("choices").appendChild(btn);
             });
         }
