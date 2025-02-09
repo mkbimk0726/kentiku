@@ -1,71 +1,88 @@
+/* 🔹 全体の基本スタイル */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
     background-color: #f4f4f4;
-    height: 100vh; /* 画面全体を使う */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 縦方向の中央揃え */
-    align-items: center; /* 横方向の中央揃え */
-    padding: 10px; /* スマホの端との余白 */
+    margin: 0;
+    padding: 0;
 }
 
-/* 🔹 コンテンツ全体を大きくする */
+/* 🔹 コンテンツ全体を中央に配置 */
 .container {
-    width: 95%; /* スマホ幅にフィット */
-    max-width: 800px; /* PC用の上限 */
+    width: 90%;
+    max-width: 800px; /* PCでも見やすいサイズ */
+    margin: 50px auto;
     background: white;
-    padding: 30px;
+    padding: 40px; /* 余白を広めに */
     border-radius: 12px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* 🔹 スタートボタンの位置とサイズ */
-#start-button {
+/* 🔹 すべてのボタンを統一（青色 + 間隔を広げる） */
+button {
     display: block;
-    margin: auto;
-    font-size: 28px; /* 文字サイズUP */
-    padding: 20px;
-    width: 80%; /* 横幅を広げる */
-}
-
-/* 🔹 選択肢ボタンのサイズを大きく */
-.choice-btn {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 20px;
-    font-size: 28px; /* 文字サイズを倍に */
+    width: 90%; /* 画面幅にフィット */
+    margin: 30px auto; /* 🔥 ボタン間の間隔を広げる */
+    padding: 40px; /* 🔥 高さをさらに増やす */
+    font-size: 48px; /* 文字サイズを大きく */
     cursor: pointer;
-    background-color: #007bff;
-    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
+    background-color: #007bff; /* 🔵 青 */
+    color: white;
     transition: background 0.3s ease;
 }
 
+button:hover {
+    background-color: #0056b3; /* 🔵 少し暗い青 */
+}
+
+/* 🔹 選択肢ボタン（〇✕や4択） */
+.choice-btn {
+    display: block;
+    width: 100%;
+    margin: 30px 0; /* 🔥 ボタンの間隔を広げる */
+    padding: 40px; /* 🔥 高さをさらに増やす */
+    font-size: 48px;
+    background-color: #007bff; /* 🔵 青 */
+    color: white;
+    border: none;
+    border-radius: 12px;
+}
+
 .choice-btn:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* 🔵 少し暗い青 */
 }
 
-/* 🔹 問題テキストを大きく */
+/* 🔹 問題文の文字サイズを2倍に */
 #question-text {
-    font-size: 32px; /* 文字サイズを2倍に */
+    font-size: 64px; /* かなり大きく */
     font-weight: bold;
-    line-height: 1.6;
+    margin-bottom: 40px; /* 🔥 問題文とボタンの間隔を広げる */
 }
 
-/* 🔹 説明文も大きく */
+/* 🔹 解説の文字サイズを大きく */
 #explanation {
-    font-size: 24px; /* 文字サイズをUP */
-    line-height: 1.6;
+    font-size: 36px;
     color: #555;
-    margin-top: 15px;
+    margin-top: 30px; /* 🔥 上下の余白を広げる */
 }
 
-/* 🔹 終了画面のスコアも見やすく */
+/* 🔹 クイズ画面の中央配置 */
+#quiz-container {
+    display: none;
+    text-align: center;
+}
+
+/* 🔹 終了画面 */
+#end-screen {
+    display: none;
+    margin-top: 30px;
+}
+
 #score {
-    font-size: 28px;
+    font-size: 48px;
     font-weight: bold;
     color: #333;
+    margin-top: 30px;
 }
