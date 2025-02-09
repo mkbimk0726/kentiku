@@ -2,12 +2,16 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     background-color: #f4f4f4;
+    height: 100vh; /* 画面全体を使う */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 縦方向の中央揃え */
+    align-items: center; /* 横方向の中央揃え */
 }
 
 .container {
     width: 80%;
     max-width: 600px;
-    margin: 50px auto;
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -17,10 +21,11 @@ body {
 /* 🔵 青くなるボタンのデザイン */
 button {
     margin-top: 10px;
-    padding: 10px 15px;
-    font-size: 16px;
+    padding: 15px 20px;
+    font-size: 20px;
+    line-height: 1.5;
     cursor: pointer;
-    background-color: #007bff; /* 明るい青 */
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
@@ -28,15 +33,22 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3; /* 少し暗めの青 */
+    background-color: #0056b3;
 }
 
+/* スタートボタンの中央固定 */
+#start-button {
+    display: block;
+    margin: auto;
+}
+
+/* 選択肢ボタン */
 .choice-btn {
     display: block;
     width: 100%;
-    margin: 5px 0;
-    padding: 10px;
-    font-size: 16px;
+    margin: 8px 0;
+    padding: 15px;
+    font-size: 20px;
     cursor: pointer;
     background-color: #007bff;
     color: white;
@@ -49,11 +61,19 @@ button:hover {
     background-color: #0056b3;
 }
 
+/* 質問テキスト */
+#question-text {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
 /* 説明テキスト */
 #explanation {
-    font-size: 14px;
+    font-size: 18px;
+    line-height: 1.6;
     color: #555;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 /* 終了画面 */
@@ -63,7 +83,7 @@ button:hover {
 }
 
 #score {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
     color: #333;
 }
