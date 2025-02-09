@@ -1,20 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
-    // ✅ デバッグメッセージを非表示にする
-    function logToScreen(message) {
-        let logDiv = document.getElementById("log");
-        if (!logDiv) return;
-        logDiv.innerHTML += message + "<br>";
-    }
-
-    console.log = (function(origConsoleLog) {
-        return function(message) {
-            origConsoleLog(message);
-            logToScreen(message);
-        };
-    })(console.log);
-
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
@@ -24,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch("/questions.csv");
             const text = await response.text();
-            console.log('📌 CSV を取得しました:', text.slice(0, 100)); 
+            console.log('📌 CSV を取得しました:', text.slice(0, 100)); // 先頭100文字のみ表示
             questions = parseCSV(text);
             console.log('📌 パース後の questions:', questions);
             initializeQuestions();
@@ -43,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         parsed.data.forEach(row => {
-            if (!row.id || !row.question) return;
+            if (!row.id || !row.question) return; // 無効な行はスキップ
             result.push({
                 id: parseInt(row.id),
                 type: row.type.trim(),
@@ -62,12 +48,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function initializeQuestions() {
         currentQuestionIndex = 0;
         correctAnswers = 0;
+        shuffleArray(questions);
         loadQuestion();
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
-        if (currentQuestionIndex >= questions.length) {
+        if (currentQuestionIndex >= 20 || questions.length === 0) {
             showEndScreen();
             return;
         }
@@ -109,7 +103,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("choices").innerHTML = "";
         document.getElementById("next-question").style.display = "block";
 
-        if (isCorrect) correctAnswers++;
+        if (isCorrect) {
+            correctAnswers++;
+        } else {
+            // 間違えた場合、relatedId を持つ問題を2-6問後に出題
+            if (questionObj.relatedId) {
+                let relatedQuestion = questions.find(q => q.id === questionObj.relatedId);
+                if (relatedQuestion) {
+                    let insertIndex = Math.min(currentQuestionIndex + Math.floor(Math.random() * 5) + 2, questions.length);
+                    questions.splice(insertIndex, 0, relatedQuestion);
+                    console.log(`📌 間違えたので、関連問題（ID: ${questionObj.relatedId}）を ${insertIndex} 番目に追加`);
+                }
+            }
+        }
 
         currentQuestionIndex++;
     }
@@ -117,17 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function showEndScreen() {
         document.getElementById("quiz-container").style.display = "none";
         document.getElementById("end-screen").style.display = "block";
-        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
-    }
-
-    function restartQuiz() {
-        console.log('📌 スタートに戻るボタンが押されました');
-        
-        document.getElementById("start-button").style.display = "block"; // ✅ スタートボタンを表示
-        document.getElementById("quiz-container").style.display = "none"; // ✅ クイズ画面を非表示
-        document.getElementById("end-screen").style.display = "none"; // ✅ 終了画面を非表示
-
-        initializeQuestions(); // ✅ 質問リストをリセット
+        document.getElementById("score").textContent = `正解数: ${correctAnswers} / 20`;
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
@@ -143,5 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
         loadQuestion();
     });
 
-    document.getElementById("restart-button").addEventListener("click", restartQuiz); // ✅ スタートに戻るボタンを修正
+    document.getElementById("restart-button").addEventListener("click", () => {
+        console.log('📌 スタート画面に戻ります');
+        document.getElementById("start-button").style.display = "block";
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "none";
+    });
 });
