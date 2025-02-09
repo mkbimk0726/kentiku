@@ -8,22 +8,21 @@ document.addEventListener("DOMContentLoaded", () => {
             logDiv = document.createElement("div");
             logDiv.id = "log";
             logDiv.style.position = "fixed";
-            logDiv.style.top = "20px";  // ✅ 画面の上部に表示
+            logDiv.style.top = "20px";  
             logDiv.style.right = "20px";
-            logDiv.style.width = "350px";  // ✅ サイズを大きく
-            logDiv.style.height = "250px";  // ✅ ログの高さも調整
-            logDiv.style.overflowY = "auto";  // ✅ スクロール可能に
-            logDiv.style.background = "rgba(0, 0, 0, 0.85)";  // ✅ 半透明の黒背景
+            logDiv.style.width = "400px";  
+            logDiv.style.height = "300px";  
+            logDiv.style.overflowY = "auto";  
+            logDiv.style.background = "rgba(0, 0, 0, 0.85)";  
             logDiv.style.color = "white";
-            logDiv.style.padding = "15px";  // ✅ 余白を広めに
-            logDiv.style.fontSize = "14px";  // ✅ 文字サイズUP
+            logDiv.style.padding = "15px";  
+            logDiv.style.fontSize = "14px";  
             logDiv.style.zIndex = "9999";
             logDiv.style.borderRadius = "8px";
             logDiv.style.boxShadow = "0px 0px 12px rgba(255, 255, 255, 0.6)";
             document.body.appendChild(logDiv);
         }
 
-        // ✅ 最新のログを上に追加（新しいログが上に表示される）
         let logEntry = document.createElement("div");
         logEntry.textContent = message;
         logDiv.insertBefore(logEntry, logDiv.firstChild);
@@ -48,7 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log('📌 CSV を取得しました', response);
             const text = await response.text();
             console.log('📌 CSV の内容（先頭100文字）:', text.slice(0, 100));
+
             questions = parseCSVWithPapa(text);
+
+            if (questions.length === 0) {
+                console.error('❌ パース後の questions が空です！');
+            }
+
             console.log('📌 パース後の questions:', questions);
             initializeQuestions();
         } catch (error) {
@@ -60,9 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('📌 parseCSVWithPapa() が実行されました');
 
         let parsedData = Papa.parse(csvText, {
-            header: true,  // ✅ ヘッダー行をキーとして解析
-            skipEmptyLines: true, // ✅ 空行を無視
-            dynamicTyping: true // ✅ 自動型変換
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true
         });
 
         console.log('📌 PapaParse の解析結果:', parsedData);
@@ -80,10 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return [];
         }
 
-        // **データの最初の 5 行をログに表示**
         console.log('📌 CSV の先頭 5 行:', parsedData.data.slice(0, 5));
 
-        let result = parsedData.data.map(row => ({
+        return parsedData.data.map(row => ({
             id: parseInt(row.id),
             type: row.type ? row.type.trim() : "",
             question: row.question ? row.question.trim() : "",
@@ -92,9 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
             relatedId: row.relatedId ? parseInt(row.relatedId) : null,
             explanation: row.explanation ? row.explanation.trim() : ""
         }));
-
-        console.log('📌 パース後の questions:', result);
-        return result;
     }
 
     function loadQuestion() {
