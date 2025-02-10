@@ -2,15 +2,25 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
     let questions = [];
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
         try {
-            const response = await fetch("/questions.csv");
+            const response = await fetch("/question.csv");
             const text = await response.text();
             console.log('📌 CSV を取得しました:', text.slice(0, 100)); // 先頭100文字のみ表示
             questions = generateQuestions(parseCSV(text));
             console.log('📌 生成された問題:', questions);
+
+            // ✅ 問題リストが空でないか確認し、初期化
+            if (questions.length > 0) {
+                initializeQuestions();
+            } else {
+                console.error("❌ 問題が生成されませんでした");
+            }
+
         } catch (error) {
             console.error('❌ CSV の読み込みエラー:', error);
         }
@@ -121,16 +131,70 @@ document.addEventListener("DOMContentLoaded", () => {
         return questionsList;
     }
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    function initializeQuestions() {
+        currentQuestionIndex = 0;
+        document.getElementById("start-button").style.display = "none";
+        document.getElementById("quiz-container").style.display = "block";
+        document.getElementById("end-screen").style.display = "none";
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        console.log('📌 loadQuestion() が実行されました');
+        if (currentQuestionIndex >= 20 || questions.length === 0) {
+            showEndScreen();
+            return;
         }
-        return array;
+
+        const questionObj = questions[currentQuestionIndex];
+        console.log('📌 出題:', questionObj);
+
+        document.getElementById("question-text").textContent = questionObj.question;
+        document.getElementById("choices").innerHTML = "";
+        document.getElementById("result").textContent = "";
+        document.getElementById("explanation").textContent = "";
+        document.getElementById("next-question").style.display = "none";
+
+        if (questionObj.type === "truefalse") {
+            ["〇", "✕"].forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = option;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        } else if (questionObj.choices.length > 0) {
+            questionObj.choices.forEach(choice => {
+                const btn = document.createElement("button");
+                btn.textContent = choice;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(choice, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        }
+    }
+
+    function checkAnswer(userAnswer, questionObj) {
+        console.log('📌 checkAnswer() が実行されました', userAnswer, questionObj);
+        let isCorrect = userAnswer === questionObj.correct;
+
+        document.getElementById("result").textContent = isCorrect ? "正解！" : "不正解...";
+        document.getElementById("next-question").style.display = "block";
+        currentQuestionIndex++;
+    }
+
+    function showEndScreen() {
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
         console.log('📌 スタートボタンが押されました');
         loadCSV();
+    });
+
+    document.getElementById("next-question").addEventListener("click", () => {
+        console.log('📌 次の問題へ進みます');
+        loadQuestion();
     });
 });
