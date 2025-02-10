@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch("/questions.csv");
             const text = await response.text();
-            console.log('📌 CSV を取得しました:', text.slice(0, 100)); // 先頭100文字のみ表示
+            console.log('📌 CSV を取得しました:', text.slice(0, 100));
             questions = parseCSV(text);
             console.log('📌 パース後の questions:', questions);
             initializeQuestions();
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         parsed.data.forEach(row => {
-            if (!row.id || !row.question) return; // 無効な行はスキップ
+            if (!row.id || !row.question) return;
             result.push({
                 id: parseInt(row.id),
                 type: row.type.trim(),
@@ -61,7 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loadQuestion() {
         console.log('📌 loadQuestion() が実行されました');
-        if (currentQuestionIndex >= 20 || questions.length === 0) {
+
+        if (currentQuestionIndex >= 20) {
             showEndScreen();
             return;
         }
@@ -106,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isCorrect) {
             correctAnswers++;
         } else {
-            // 間違えた場合、relatedId を持つ問題を2-6問後に出題
             if (questionObj.relatedId) {
                 let relatedQuestion = questions.find(q => q.id === questionObj.relatedId);
                 if (relatedQuestion) {
@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showEndScreen() {
+        console.log('📌 showEndScreen() が実行されました');
         document.getElementById("quiz-container").style.display = "none";
         document.getElementById("end-screen").style.display = "block";
         document.getElementById("score").textContent = `正解数: ${correctAnswers} / 20`;
