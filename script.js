@@ -89,17 +89,17 @@ document.addEventListener("DOMContentLoaded", () => {
             // 各データが正しく取得できているかチェック
             console.log("📌 解析中の行:", row);
 
-            if (!row["ID1"] || !row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
+            if (!row[ID1] || !row[都市計画名] || !row[建築家] || !row[特徴1]) {
                 console.warn("⚠ 無効な行 (スキップ):", row);
                 return; 
             }
 
             result.push({
-                id: parseInt(row["ID1"]),
-                groupId: parseInt(row["ID2"]),
-                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
-                建築家: (row["建築家"] ?? "").toString().trim(),
-                特徴1: (row["特徴1"] ?? "").toString().trim()
+                id: parseInt(row[ID1]),
+                groupId: parseInt(row[ID2]),
+                都市計画名: (row[都市計画名] ?? "").toString().trim(),
+                建築家: (row[建築家] ?? "").toString().trim(),
+                特徴1: (row[特徴1] ?? "").toString().trim()
             });
         });
 
