@@ -107,55 +107,56 @@ document.addEventListener("DOMContentLoaded", () => {
         return result;
     }
 
-    function generateQuestions(data) {
-        let questionsList = [];
+  function generateQuestions(data) {
+    let questionsList = [];
 
-        data.forEach(entry => {
-            let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
-            let isTrueFalse = Math.random() < 0.5;
+    data.forEach(entry => {
+        let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
+        let isTrueFalse = Math.random() < 0.5;
 
-            if (isTrueFalse) {
-                let isTrue = Math.random() < 0.5;
-                let questionText, correctAnswer;
+        if (isTrueFalse) {
+            let isTrue = Math.random() < 0.5;
+            let questionText, correctAnswer;
 
-                if (isTrue || relatedEntries.length === 0) {
-                    questionText = `${entry.都市計画名} は ${entry.建築家} が設計した`;
-                    correctAnswer = true;
-                } else {
-                    let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
-                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が設計した`;
-                    correctAnswer = false;
-                }
-
-                questionsList.push({
-                    type: "truefalse",
-                    question: questionText,
-                    correct: correctAnswer
-                });
+            if (isTrue || relatedEntries.length === 0) {
+                questionText = `${entry.都市計画名} は ${entry.建築家} が設計した`;
+                correctAnswer = true;
             } else {
-                let questionText = `${entry.都市計画名} は誰が設計したか？`;
-                let correctAnswer = entry.建築家;
-                let choices = [correctAnswer];
-
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.建築家;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
-
-                choices = shuffleArray(choices);
-
-                questionsList.push({
-                    type: "multiple",
-                    question: questionText,
-                    choices: choices,
-                    correct: correctAnswer
-                });
+                let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
+                questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が設計した`;
+                correctAnswer = false;
             }
-        });
 
-        return questionsList;
-    }
+            questionsList.push({
+                type: "truefalse",
+                question: questionText,
+                correct: correctAnswer
+            });
+        } else {
+            let questionText = `${entry.都市計画名} は誰が設計したか？`;
+            let correctAnswer = entry.建築家;
+            let choices = [correctAnswer];
+
+            while (choices.length < 4 && relatedEntries.length > 0) {
+                let randomEntry = relatedEntries.pop();
+                let wrongChoice = randomEntry.建築家;
+                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+            }
+
+            choices = shuffleArray(choices); // 🔹 ここでシャッフルを適用
+
+            questionsList.push({
+                type: "multiple",
+                question: questionText,
+                choices: choices,
+                correct: correctAnswer
+            });
+        }
+    });
+
+    return questionsList;
+}
+
 
     function initializeQuestions() {
         currentQuestionIndex = 0;
