@@ -63,40 +63,50 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function parseCSV(csvText) {
-        console.log('📌 parseCSV() 実行');
+   function parseCSV(csvText) {
+    console.log('📌 parseCSV() 実行');
 
-        let parsed = Papa.parse(csvText, { 
-            header: true, 
-            skipEmptyLines: true 
-        });
+    // ✅ 改行コードを統一
+    csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-        if (parsed.errors.length > 0) {
-            console.error("❌ CSV パースエラー:", parsed.errors);
+    // ✅ CSV をパース
+    let parsed = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true
+    });
+
+    console.log("📌 パース結果の生データ:", parsed.data);
+
+    // ✅ パース時のエラーをチェック
+    if (parsed.errors.length > 0) {
+        console.error("❌ CSV パースエラー:", parsed.errors);
+    }
+
+    let result = [];
+
+    parsed.data.forEach(row => {
+        // 各データが正しく取得できているかチェック
+        console.log("📌 解析中の行:", row);
+
+        if (!row["ID1"] || !row["都市計画"] || !row["建築家"] || !row["特徴1"]) {
+            console.warn("⚠ 無効な行 (スキップ):", row);
+            return; 
         }
 
-        console.log("📌 パース結果の生データ:", parsed);
-
-        let result = [];
-
-        parsed.data.forEach(row => {
-            if (!row["ID1"] || !row["都市計画"] || !row["建築家"] || !row["特徴1"]) {
-                console.warn("⚠ 無効な行 (スキップ):", row);
-                return; 
-            }
-
-            result.push({
-                id: parseInt(row["ID1"].trim()),
-                groupId: parseInt(row["ID2"].trim()),
-                都市計画: row["都市計画"].trim(),
-                建築家: row["建築家"].trim(),
-                特徴1: row["特徴1"].trim()
-            });
+        result.push({
+            id: parseInt(row["ID1"]),
+            groupId: parseInt(row["ID2"]),
+            都市計画: row["都市計画"].trim(),
+            建築家: row["建築家"].trim(),
+            特徴1: row["特徴1"].trim()
         });
+    });
 
-        console.log("📌 最終的なパース結果:", result);
-        return result;
-    }
+    console.log("📌 最終的なパース結果:", result);
+    return result;
+}
+
 
     function generateQuestions(data) {
         let questionsList = [];
