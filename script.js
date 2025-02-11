@@ -94,7 +94,7 @@ function shuffleArray(array) {
         return result;
     }
 
-    function generateQuestions(data) {
+function generateQuestions(data) {
     let questionsList = [];
     console.log("📌 generateQuestions() の入力データ:", data);
 
@@ -104,7 +104,7 @@ function shuffleArray(array) {
 
         if (isTrueFalse) {
             questionText = `${entry.都市計画名.trim()} は ${entry.建築家.trim()} が ${entry.特徴1.trim()}`;
-            correctAnswer = true;
+            correctAnswer = true; // ✅ 正しい文章なら true
 
             questionsList.push({
                 type: "truefalse",
@@ -113,23 +113,25 @@ function shuffleArray(array) {
             });
         } else {
             questionText = `${entry.都市計画名.trim()} は誰が設計したか？`;
-            correctAnswer = entry.建築家.trim();
-            choices.push(correctAnswer);
+            let correctChoice = entry.建築家.trim();
+            choices.push({ text: correctChoice, isCorrect: true }); // ✅ 正解の選択肢を true にする
 
             let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
                 let wrongChoice = randomEntry.建築家.trim();
-                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                if (!choices.some(choice => choice.text === wrongChoice)) {
+                    choices.push({ text: wrongChoice, isCorrect: false }); // ✅ 不正解の選択肢を false にする
+                }
             }
 
-            choices = shuffleArray(choices); 
+            choices = shuffleArray(choices);
 
             questionsList.push({
                 type: "multiple",
                 question: questionText,
                 choices: choices,
-                correct: correctAnswer
+                correct: true // ✅ すべての選択肢に対して `true/false` で比較できるようにする
             });
         }
     });
@@ -140,51 +142,51 @@ function shuffleArray(array) {
     return questionsList;
 }
 
+
     function loadQuestion() {
-        console.log('📌 loadQuestion() 実行');
+    console.log('📌 loadQuestion() 実行');
 
-        if (currentQuestionIndex >= questions.length) {
-            console.log("📌 全ての問題が終了しました。終了画面へ移行");
-            document.getElementById("quiz-container").style.display = "none";
-            document.getElementById("end-screen").style.display = "block";
-            document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
-            return;
-        }
-
-        const questionObj = questions[currentQuestionIndex];
-        console.log('📌 出題:', questionObj);
-
-        document.getElementById("question-text").textContent = questionObj.question;
-        document.getElementById("choices").innerHTML = "";
-
-        if (questionObj.type === "truefalse") {
-            ["〇", "✕"].forEach((option, index) => {
-                const btn = document.createElement("button");
-                btn.textContent = option;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0, questionObj);
-                document.getElementById("choices").appendChild(btn);
-            });
-        } else {
-            questionObj.choices.forEach(choice => {
-                const btn = document.createElement("button");
-                btn.textContent = choice;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice === questionObj.correct, questionObj);
-                document.getElementById("choices").appendChild(btn);
-            });
-        }
-
-        document.getElementById("result").textContent = "";
-        document.getElementById("next-question").style.display = "none";
+    if (currentQuestionIndex >= questions.length) {
+        console.log("📌 全ての問題が終了しました。終了画面へ移行");
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
+        return;
     }
 
-    function checkAnswer(userAnswer, questionObj) {
+    const questionObj = questions[currentQuestionIndex];
+    console.log('📌 出題:', questionObj);
+
+    document.getElementById("question-text").textContent = questionObj.question;
+    document.getElementById("choices").innerHTML = "";
+
+    if (questionObj.type === "truefalse") {
+        ["〇", "✕"].forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.textContent = option;
+            btn.classList.add("choice-btn");
+            btn.onclick = () => checkAnswer(index === 0, questionObj); // ✅ 〇×は `true/false` で比較
+            document.getElementById("choices").appendChild(btn);
+        });
+    } else {
+        questionObj.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.textContent = choice.text;
+            btn.classList.add("choice-btn");
+            btn.onclick = () => checkAnswer(choice.isCorrect, questionObj); // ✅ 四択も `true/false` で比較
+            document.getElementById("choices").appendChild(btn);
+        });
+    }
+
+    document.getElementById("result").textContent = "";
+    document.getElementById("next-question").style.display = "none";
+}
+
+   function checkAnswer(userAnswer, questionObj) {
     console.log("📌 ユーザーの回答:", userAnswer);
     console.log("📌 正解:", questionObj.correct);
 
-    // ✅ 空白や改行を削除して厳密比較
-    if (userAnswer.toString().trim() === questionObj.correct.toString().trim()) {
+    if (userAnswer === true) { // ✅ `true/false` で判定
         document.getElementById("result").textContent = "正解！";
         correctAnswers++;
     } else {
@@ -195,15 +197,6 @@ function shuffleArray(array) {
     document.getElementById("next-question").style.display = "block";
 }
 
-    document.getElementById("start-button").addEventListener("click", () => {
-        console.log('📌 スタートボタンが押されました');
-        loadCSV();
-    });
-
-    document.getElementById("next-question").addEventListener("click", () => {
-        console.log("📌 次の問題ボタンが押されました");
-        loadQuestion();
-    });
 
     document.getElementById("restart-button").addEventListener("click", () => {
         console.log("📌 スタートに戻るボタンが押されました");
