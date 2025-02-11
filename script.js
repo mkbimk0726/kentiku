@@ -95,9 +95,27 @@ document.addEventListener("DOMContentLoaded", () => {
         let questionText, correctAnswer, choices = [];
 
         if (isTrueFalse) {
-            // ✅ 〇✕問題（True/False）
-            questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-            correctAnswer = true;
+            // ✅ 〇✕問題（True/False）をランダムに正解・不正解を生成
+            let isTrue = Math.random() < 0.5;
+            if (isTrue) {
+                // ✅ 正しい問題を作成
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                correctAnswer = true;
+            } else {
+                // ✅ 誤った問題を作成（建築家、都市計画、特徴をランダムで変更）
+                let wrongEntry = data[Math.floor(Math.random() * data.length)];
+                let randType = Math.floor(Math.random() * 3);  // 0: 建築家, 1: 都市計画, 2: 特徴
+
+                if (randType === 0) {
+                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
+                } else if (randType === 1) {
+                    questionText = `${wrongEntry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                } else {
+                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${wrongEntry.特徴1}`;
+                }
+
+                correctAnswer = false;
+            }
 
             questionsList.push({
                 type: "truefalse",
@@ -105,7 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 correct: correctAnswer
             });
         } else {
-            // ✅ 4択問題のタイプをランダムに選択（建築家を答える / 都市計画を答える）
             let isArchitectQuestion = Math.random() < 0.5;
 
             if (isArchitectQuestion) {
@@ -114,16 +131,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 correctAnswer = entry.建築家;
                 choices.push(correctAnswer);
 
-                // ✅ 同じ `ID2`（グループID）の建築家を誤答候補に追加
                 let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.建築家 !== correctAnswer);
-                
-                // ✅ 誤答が足りない場合は、他のグループから補充
-                let extraEntries = data.filter(q => q.groupId !== entry.groupId);
+                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
 
                 while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
                     let randomEntry = relatedEntries.length > 0 
                         ? relatedEntries.pop() 
-                        : extraEntries.pop(); // 誤答が足りなければ別グループから
+                        : extraEntries.pop();
 
                     let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
@@ -134,16 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 correctAnswer = entry.都市計画名;
                 choices.push(correctAnswer);
 
-                // ✅ 同じ `ID2`（グループID）の都市計画を誤答候補に追加
                 let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.都市計画名 !== correctAnswer);
-                
-                // ✅ 誤答が足りない場合は、他のグループから補充
-                let extraEntries = data.filter(q => q.groupId !== entry.groupId);
+                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
 
                 while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
                     let randomEntry = relatedEntries.length > 0 
                         ? relatedEntries.pop() 
-                        : extraEntries.pop(); // 誤答が足りなければ別グループから
+                        : extraEntries.pop();
 
                     let wrongChoice = randomEntry.都市計画名;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
@@ -161,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ✅ ランダムに20問選択
     questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
     console.log("📌 ランダムに選択された問題リスト:", questionsList);
 
