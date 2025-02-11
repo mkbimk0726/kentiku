@@ -133,27 +133,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     correct: correctAnswer
                 });
             } else {
-                let randType = Math.floor(Math.random() * 2);
                 let questionText, correctAnswer, choices = [];
 
-                if (randType === 0) {
-                    questionText = `${entry.都市計画} は ${entry.特徴1} 設計者は誰か？`;
-                    correctAnswer = entry.建築家;
+                questionText = `${entry.都市計画} は ${entry.特徴1} 設計者は誰か？`;
+                correctAnswer = entry.建築家;
 
-                    choices.push(correctAnswer);
-                    while (choices.length < 4 && relatedEntries.length > 0) {
-                        let wrongChoice = relatedEntries.pop().建築家;
-                        if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                    }
-                } else {
-                    questionText = `${entry.建築家} は ${entry.特徴1} 都市計画はどれか？`;
-                    correctAnswer = entry.都市計画;
-
-                    choices.push(correctAnswer);
-                    while (choices.length < 4 && relatedEntries.length > 0) {
-                        let wrongChoice = relatedEntries.pop().都市計画;
-                        if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                    }
+                choices.push(correctAnswer);
+                while (choices.length < 4 && relatedEntries.length > 0) {
+                    let wrongChoice = relatedEntries.pop().建築家;
+                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
                 }
 
                 choices = shuffleArray(choices);
@@ -178,12 +166,30 @@ document.addEventListener("DOMContentLoaded", () => {
         loadQuestion();
     }
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    // ✅ `loadQuestion()` を定義 (エラーを修正)
+    function loadQuestion() {
+        console.log('📌 loadQuestion() 実行');
+        if (currentQuestionIndex >= questions.length) {
+            showEndScreen();
+            return;
         }
-        return array;
+
+        const questionObj = questions[currentQuestionIndex];
+        console.log('📌 出題:', questionObj);
+
+        document.getElementById("question-text").textContent = questionObj.question;
+        document.getElementById("choices").innerHTML = "";
+        document.getElementById("next-question").style.display = "none";
+
+        if (questionObj.type === "truefalse") {
+            ["〇", "✕"].forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = option;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        }
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
