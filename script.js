@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
-    // ✅ デバッグログを画面上に表示
+    // ✅ デバッグログを画面上に表示する関数
     function logToScreen(message) {
         let logDiv = document.getElementById("debug-log");
         if (!logDiv) {
@@ -43,7 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             const text = await response.text();
-            console.log(`📌 CSV 取得内容 (先頭100文字): ${text.slice(0, 100)}`); // 🔍デバッグ用
+            console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`); // 🔍デバッグ用
+
             let parsedData = parseCSV(text);
 
             if (!parsedData || parsedData.length === 0) {
@@ -76,22 +77,25 @@ document.addEventListener("DOMContentLoaded", () => {
             dynamicTyping: true
         });
 
-        console.log("📌 パース結果の生データ:", parsed.data);
+        // ✅ CSVのカラム名を確認
+        console.log("📌 CSVのカラム名:", parsed.meta.fields);  // ← 追加
 
+        console.log("📌 パース結果の生データ:", parsed.data);
+        
         // ✅ パース時のエラーをチェック
         if (parsed.errors.length > 0) {
             console.error("❌ CSV パースエラー:", parsed.errors);
         }
 
         let result = [];
-
         parsed.data.forEach(row => {
             // 各データが正しく取得できているかチェック
             console.log("📌 解析中の行:", row);
+            console.log("📌 行のキー:", Object.keys(row));  // ← 追加
 
-            if (!row["ID1"] || !row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
+            if (!row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
                 console.warn("⚠ 無効な行 (スキップ):", row);
-                return; 
+                return;
             }
 
             result.push({
@@ -107,129 +111,39 @@ document.addEventListener("DOMContentLoaded", () => {
         return result;
     }
 
-  function generateQuestions(data) {
-    let questionsList = [];
-
-    data.forEach(entry => {
-        let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
-        let isTrueFalse = Math.random() < 0.5;
-
-        if (isTrueFalse) {
-            let isTrue = Math.random() < 0.5;
-            let questionText, correctAnswer;
-
-            if (isTrue || relatedEntries.length === 0) {
-                questionText = `${entry.都市計画名} は ${entry.建築家} が設計した`;
-                correctAnswer = true;
-            } else {
-                let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
-                questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が設計した`;
-                correctAnswer = false;
-            }
-
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
-        } else {
-            let questionText = `${entry.都市計画名} は誰が設計したか？`;
-            let correctAnswer = entry.建築家;
-            let choices = [correctAnswer];
-
-            while (choices.length < 4 && relatedEntries.length > 0) {
-                let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.建築家;
-                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-            }
-
-            choices = shuffleArray(choices); // 🔹 ここでシャッフルを適用
-
-            questionsList.push({
-                type: "multiple",
-                question: questionText,
-                choices: choices,
-                correct: correctAnswer
-            });
-        }
-    });
-
-    return questionsList;
-}
-
-
     function generateQuestions(data) {
-    let questionsList = [];
+        let questionsList = [];
+        console.log("📌 generateQuestions() の入力データ:", data);  // ← 追加
 
-    data.forEach(entry => {
-        let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
-        let isTrueFalse = Math.random() < 0.5;
+        data.forEach(entry => {
+            console.log("📌 現在処理中のエントリ:", entry);  // ← 追加
 
-        if (isTrueFalse) {
-            let isTrue = Math.random() < 0.5;
-            let questionText, correctAnswer;
+            let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
+            let isTrueFalse = Math.random() < 0.5;
 
-            if (isTrue || relatedEntries.length === 0) {
-                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                correctAnswer = true;
-            } else {
-                let randType = Math.floor(Math.random() * 3);
-                let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
+            if (isTrueFalse) {
+                let isTrue = Math.random() < 0.5;
+                let questionText, correctAnswer;
 
-                if (randType === 0) {
-                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
-                } else if (randType === 1) {
-                    questionText = `${wrongEntry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                if (isTrue || relatedEntries.length === 0) {
+                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                    correctAnswer = true;
                 } else {
-                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${wrongEntry.特徴1}`;
+                    let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
+                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
+                    correctAnswer = false;
                 }
 
-                correctAnswer = false;
+                questionsList.push({
+                    type: "truefalse",
+                    question: questionText,
+                    correct: correctAnswer
+                });
             }
+        });
 
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
-        } else {
-            let randType = Math.floor(Math.random() * 2);
-            let questionText, correctAnswer, choices = [];
-
-            if (randType === 0) {
-                questionText = `${entry.都市計画名} は ${entry.特徴1} 設計者は誰か？`;
-                correctAnswer = entry.建築家;
-
-                choices.push(correctAnswer);
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.建築家;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
-            } else {
-                questionText = `${entry.建築家} は ${entry.特徴1} 建築物はどれか？`;
-                correctAnswer = entry.都市計画名;
-
-                choices.push(correctAnswer);
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.都市計画名;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
-            }
-
-            choices = shuffleArray(choices); // ✅ 修正：`shuffleArray()` を適用
-
-            questionsList.push({
-                type: "multiple",
-                question: questionText,
-                choices: choices,
-                correct: correctAnswer
-            });
-        }
-    });
-
-    return questionsList;
+        console.log("📌 最終的な問題リスト:", questionsList);  // ← 追加
+        return questionsList;
     }
 
     function loadQuestion() {
