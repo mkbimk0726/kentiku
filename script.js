@@ -4,14 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
-// ✅ 配列をシャッフルする関数
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
@@ -95,50 +87,50 @@ function shuffleArray(array) {
     }
 
     function generateQuestions(data) {
-    let questionsList = [];
-    console.log("📌 generateQuestions() の入力データ:", data);
+        let questionsList = [];
+        console.log("📌 generateQuestions() の入力データ:", data);
 
-    data.forEach(entry => {
-        let isTrueFalse = Math.random() < 0.5;
-        let questionText, correctAnswer, choices = [];
+        data.forEach(entry => {
+            let isTrueFalse = Math.random() < 0.5;
+            let questionText, correctAnswer, choices = [];
 
-        if (isTrueFalse) {
-            questionText = `${entry.都市計画名.trim()} は ${entry.建築家.trim()} が ${entry.特徴1.trim()}`;
-            correctAnswer = true;
+            if (isTrueFalse) {
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                correctAnswer = true;
 
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
-        } else {
-            questionText = `${entry.都市計画名.trim()} は誰が設計したか？`;
-            correctAnswer = entry.建築家.trim();
-            choices.push(correctAnswer);
+                questionsList.push({
+                    type: "truefalse",
+                    question: questionText,
+                    correct: correctAnswer
+                });
+            } else {
+                questionText = `${entry.都市計画名} は誰が設計したか？`;
+                correctAnswer = entry.建築家;
+                choices.push(correctAnswer);
 
-            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            while (choices.length < 4 && relatedEntries.length > 0) {
-                let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.建築家.trim();
-                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+                while (choices.length < 4 && relatedEntries.length > 0) {
+                    let randomEntry = relatedEntries.pop();
+                    let wrongChoice = randomEntry.建築家;
+                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                }
+
+                choices = shuffleArray(choices); 
+
+                questionsList.push({
+                    type: "multiple",
+                    question: questionText,
+                    choices: choices,
+                    correct: correctAnswer
+                });
             }
+        });
 
-            choices = shuffleArray(choices); 
+        questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+        console.log("📌 ランダムに選択された問題リスト:", questionsList);
 
-            questionsList.push({
-                type: "multiple",
-                question: questionText,
-                choices: choices,
-                correct: correctAnswer
-            });
-        }
-    });
-
-    questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
-    console.log("📌 ランダムに選択された問題リスト:", questionsList);
-
-    return questionsList;
-}
+        return questionsList;
+    }
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
@@ -162,7 +154,7 @@ function shuffleArray(array) {
                 const btn = document.createElement("button");
                 btn.textContent = option;
                 btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0, questionObj);
+                btn.onclick = () => checkAnswer(index === 0 === questionObj.correct);
                 document.getElementById("choices").appendChild(btn);
             });
         } else {
@@ -170,7 +162,7 @@ function shuffleArray(array) {
                 const btn = document.createElement("button");
                 btn.textContent = choice;
                 btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice === questionObj.correct, questionObj);
+                btn.onclick = () => checkAnswer(choice === questionObj.correct);
                 document.getElementById("choices").appendChild(btn);
             });
         }
@@ -179,36 +171,22 @@ function shuffleArray(array) {
         document.getElementById("next-question").style.display = "none";
     }
 
-    function checkAnswer(userAnswer, questionObj) {
-    console.log("📌 ユーザーの回答:", userAnswer);
-    console.log("📌 正解:", questionObj.correct);
-
-    // ✅ 空白や改行を削除して厳密比較
-    if (userAnswer.toString().trim() === questionObj.correct.toString().trim()) {
-        document.getElementById("result").textContent = "正解！";
-        correctAnswers++;
-    } else {
-        document.getElementById("result").textContent = "不正解！";
+    function checkAnswer(isCorrect) {
+        document.getElementById("result").textContent = isCorrect ? "正解！" : "不正解！";
+        if (isCorrect) correctAnswers++;
+        currentQuestionIndex++;
+        document.getElementById("next-question").style.display = "block";
     }
 
-    currentQuestionIndex++;
-    document.getElementById("next-question").style.display = "block";
-}
+    document.getElementById("start-button").addEventListener("click", loadCSV);
+    document.getElementById("next-question").addEventListener("click", loadQuestion);
+    document.getElementById("restart-button").addEventListener("click", () => location.reload());
 
-    document.getElementById("start-button").addEventListener("click", () => {
-        console.log('📌 スタートボタンが押されました');
-        loadCSV();
-    });
-
-    document.getElementById("next-question").addEventListener("click", () => {
-        console.log("📌 次の問題ボタンが押されました");
-        loadQuestion();
-    });
-
-    document.getElementById("restart-button").addEventListener("click", () => {
-        console.log("📌 スタートに戻るボタンが押されました");
-        document.getElementById("quiz-container").style.display = "none";
-        document.getElementById("end-screen").style.display = "none";
-        document.getElementById("start-button").style.display = "block";
-    });
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 });
