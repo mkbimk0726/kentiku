@@ -4,14 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
-// ✅ 配列をシャッフルする関数
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
@@ -36,13 +28,9 @@ function shuffleArray(array) {
             if (questions.length > 0) {
                 console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
 
-                // ✅ スタートボタンを非表示
-                document.getElementById("start-button").style.display = "none";  
+                document.getElementById("start-button").style.display = "none";
+                document.getElementById("quiz-container").style.display = "block";
 
-                // ✅ クイズコンテナを表示
-                document.getElementById("quiz-container").style.display = "block";  
-
-                // ✅ 最初の問題を表示
                 currentQuestionIndex = 0;
                 correctAnswers = 0;
                 loadQuestion();
@@ -74,134 +62,108 @@ function shuffleArray(array) {
         console.log("📌 修正後のCSVカラム名:", parsed.meta.fields);
         console.log("📌 パース結果の生データ:", parsed.data);
 
-        let result = [];
-        parsed.data.forEach(row => {
-            if (!row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
-                console.warn("⚠ 無効な行 (スキップ):", row);
-                return;
-            }
-
-            result.push({
-                id: parseInt(row["ID1"]),
-                groupId: parseInt(row["ID2"]),
-                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
-                建築家: (row["建築家"] ?? "").toString().trim(),
-                特徴1: (row["特徴1"] ?? "").toString().trim()
-            });
-        });
-
-        console.log("📌 最終的なパース結果:", result);
-        return result;
+        return parsed.data.map(row => ({
+            id: parseInt(row["ID1"]),
+            groupId: parseInt(row["ID2"]),
+            都市計画名: row["都市計画名"].toString().trim(),
+            建築家: row["建築家"].toString().trim(),
+            特徴1: row["特徴1"].toString().trim()
+        }));
     }
 
-function generateQuestions(data) {
-    let questionsList = [];
-    console.log("📌 generateQuestions() の入力データ:", data);
+    function generateQuestions(data) {
+        let questionsList = [];
+        console.log("📌 generateQuestions() の入力データ:", data);
 
-    data.forEach(entry => {
-        let isTrueFalse = Math.random() < 0.5;
-        let questionText, correctAnswer, choices = [];
+        data.forEach(entry => {
+            let isTrueFalse = Math.random() < 0.5;
+            let questionText, correctAnswer, choices = [];
 
-        if (isTrueFalse) {
-            questionText = `${entry.都市計画名.trim()} は ${entry.建築家.trim()} が ${entry.特徴1.trim()}`;
-            correctAnswer = true; // ✅ 正しい文章なら true
+            if (isTrueFalse) {
+                let isTrue = Math.random() < 0.5;
+                if (isTrue) {
+                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                    correctAnswer = true;
+                } else {
+                    let wrongEntry = data[Math.floor(Math.random() * data.length)];
+                    let randType = Math.floor(Math.random() * 3);
 
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
-        } else {
-            questionText = `${entry.都市計画名.trim()} は誰が設計したか？`;
-            let correctChoice = entry.建築家.trim();
-            choices.push({ text: correctChoice, isCorrect: true }); // ✅ 正解の選択肢を true にする
+                    if (randType === 0) {
+                        questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
+                    } else if (randType === 1) {
+                        questionText = `${wrongEntry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                    } else {
+                        questionText = `${entry.都市計画名} は ${entry.建築家} が ${wrongEntry.特徴1}`;
+                    }
 
-            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            while (choices.length < 4 && relatedEntries.length > 0) {
-                let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.建築家.trim();
-                if (!choices.some(choice => choice.text === wrongChoice)) {
-                    choices.push({ text: wrongChoice, isCorrect: false }); // ✅ 不正解の選択肢を false にする
+                    correctAnswer = false;
                 }
+
+                questionsList.push({
+                    type: "truefalse",
+                    question: questionText,
+                    correct: correctAnswer
+                });
+            } else {
+                let isArchitectQuestion = Math.random() < 0.5;
+
+                if (isArchitectQuestion) {
+                    questionText = `${entry.都市計画名} は誰が設計したか？`;
+                    correctAnswer = entry.建築家;
+                    choices.push(correctAnswer);
+
+                    let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.建築家 !== correctAnswer);
+                    let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
+
+                    while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
+                        let randomEntry = relatedEntries.length > 0 ? relatedEntries.pop() : extraEntries.pop();
+                        let wrongChoice = randomEntry.建築家;
+                        if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                    }
+                } else {
+                    questionText = `${entry.建築家} は ${entry.特徴1} どの都市計画を手がけたか？`;
+                    correctAnswer = entry.都市計画名;
+                    choices.push(correctAnswer);
+
+                    let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.都市計画名 !== correctAnswer);
+                    let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
+
+                    while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
+                        let randomEntry = relatedEntries.length > 0 ? relatedEntries.pop() : extraEntries.pop();
+                        let wrongChoice = randomEntry.都市計画名;
+                        if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                    }
+                }
+
+                choices = shuffleArray(choices);
+
+                questionsList.push({
+                    type: "multiple",
+                    question: questionText,
+                    choices: choices,
+                    correct: correctAnswer
+                });
             }
+        });
 
-            choices = shuffleArray(choices);
+        return questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+    }
 
-            questionsList.push({
-                type: "multiple",
-                question: questionText,
-                choices: choices,
-                correct: true // ✅ すべての選択肢に対して `true/false` で比較できるようにする
-            });
+    function getClosestID2Entries(data, targetGroupId, correctAnswer, key) {
+        return data
+            .filter(q => q.groupId !== targetGroupId && q[key] !== correctAnswer)
+            .sort((a, b) => Math.abs(a.groupId - targetGroupId) - Math.abs(b.groupId - targetGroupId));
+    }
+
+    document.getElementById("start-button").addEventListener("click", loadCSV);
+    document.getElementById("next-question").addEventListener("click", loadQuestion);
+    document.getElementById("restart-button").addEventListener("click", () => location.reload());
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-    });
-
-    questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
-    console.log("📌 ランダムに選択された問題リスト:", questionsList);
-
-    return questionsList;
-}
-
-
-    function loadQuestion() {
-    console.log('📌 loadQuestion() 実行');
-
-    if (currentQuestionIndex >= questions.length) {
-        console.log("📌 全ての問題が終了しました。終了画面へ移行");
-        document.getElementById("quiz-container").style.display = "none";
-        document.getElementById("end-screen").style.display = "block";
-        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
-        return;
+        return array;
     }
-
-    const questionObj = questions[currentQuestionIndex];
-    console.log('📌 出題:', questionObj);
-
-    document.getElementById("question-text").textContent = questionObj.question;
-    document.getElementById("choices").innerHTML = "";
-
-    if (questionObj.type === "truefalse") {
-        ["〇", "✕"].forEach((option, index) => {
-            const btn = document.createElement("button");
-            btn.textContent = option;
-            btn.classList.add("choice-btn");
-            btn.onclick = () => checkAnswer(index === 0, questionObj); // ✅ 〇×は `true/false` で比較
-            document.getElementById("choices").appendChild(btn);
-        });
-    } else {
-        questionObj.choices.forEach(choice => {
-            const btn = document.createElement("button");
-            btn.textContent = choice.text;
-            btn.classList.add("choice-btn");
-            btn.onclick = () => checkAnswer(choice.isCorrect, questionObj); // ✅ 四択も `true/false` で比較
-            document.getElementById("choices").appendChild(btn);
-        });
-    }
-
-    document.getElementById("result").textContent = "";
-    document.getElementById("next-question").style.display = "none";
-}
-
-   function checkAnswer(userAnswer, questionObj) {
-    console.log("📌 ユーザーの回答:", userAnswer);
-    console.log("📌 正解:", questionObj.correct);
-
-    if (userAnswer === true) { // ✅ `true/false` で判定
-        document.getElementById("result").textContent = "正解！";
-        correctAnswers++;
-    } else {
-        document.getElementById("result").textContent = "不正解！";
-    }
-
-    currentQuestionIndex++;
-    document.getElementById("next-question").style.display = "block";
-}
-
-
-    document.getElementById("restart-button").addEventListener("click", () => {
-        console.log("📌 スタートに戻るボタンが押されました");
-        document.getElementById("quiz-container").style.display = "none";
-        document.getElementById("end-screen").style.display = "none";
-        document.getElementById("start-button").style.display = "block";
-    });
 });
