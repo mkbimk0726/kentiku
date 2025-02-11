@@ -35,6 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById("quiz-container").style.display = "block";  
 
                 // ✅ 最初の問題を表示
+                currentQuestionIndex = 0;
+                correctAnswers = 0;
                 loadQuestion();
             } else {
                 console.error("❌ 問題が生成されませんでした");
@@ -114,13 +116,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        console.log("📌 最終的な問題リスト:", questionsList);
+        // ✅ 20問ランダムに選択
+        questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+        console.log("📌 ランダムに選択された問題リスト:", questionsList);
+
         return questionsList;
     }
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
-        
+
         if (currentQuestionIndex >= questions.length) {
             console.log("📌 全ての問題が終了しました。終了画面へ移行");
             document.getElementById("quiz-container").style.display = "none";
@@ -132,26 +137,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const questionObj = questions[currentQuestionIndex];
         console.log('📌 出題:', questionObj);
 
-        let questionTextElem = document.getElementById("question-text");
-        if (!questionTextElem) {
-            console.error("❌ `question-text` が見つかりません！");
-            return;
-        }
-
-        // ✅ 画面のテキストを更新
-        questionTextElem.textContent = questionObj.question;
-
-        // ✅ 選択肢をクリアして、新しいものを追加
-        let choicesContainer = document.getElementById("choices");
-        choicesContainer.innerHTML = "";  // ← ここでクリア
+        document.getElementById("question-text").textContent = questionObj.question;
+        document.getElementById("choices").innerHTML = "";
 
         ["〇", "✕"].forEach((option, index) => {
             const btn = document.createElement("button");
             btn.textContent = option;
             btn.classList.add("choice-btn");
             btn.onclick = () => checkAnswer(index === 0, questionObj);
-            choicesContainer.appendChild(btn);
+            document.getElementById("choices").appendChild(btn);
         });
+
+        // ✅ 正解・不正解の表示をリセット
+        document.getElementById("result").textContent = "";
 
         // ✅ 「次の問題へ」ボタンを隠す
         document.getElementById("next-question").style.display = "none";
@@ -183,5 +181,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("next-question").addEventListener("click", () => {
         console.log("📌 次の問題ボタンが押されました");
         loadQuestion();
+    });
+
+    // ✅ 「スタートに戻る」ボタンを修正
+    document.getElementById("restart-button").addEventListener("click", () => {
+        console.log("📌 スタートに戻るボタンが押されました");
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "none";
+        document.getElementById("start-button").style.display = "block";
     });
 });
