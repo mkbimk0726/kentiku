@@ -92,28 +92,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         data.forEach(entry => {
             let isTrueFalse = Math.random() < 0.5;
-            let questionText, correctAnswer;
+            let questionText, correctAnswer, choices = [];
 
             if (isTrueFalse) {
                 questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
                 correctAnswer = true;
+
+                questionsList.push({
+                    type: "truefalse",
+                    question: questionText,
+                    correct: correctAnswer
+                });
             } else {
-                let questionOptions = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
-                let wrongEntry = questionOptions.length > 0 
-                    ? questionOptions[Math.floor(Math.random() * questionOptions.length)]
-                    : null;
+                questionText = `${entry.都市計画名} は誰が設計したか？`;
+                correctAnswer = entry.建築家;
+                choices.push(correctAnswer);
 
-                if (wrongEntry) {
-                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
-                    correctAnswer = false;
+                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+                while (choices.length < 4 && relatedEntries.length > 0) {
+                    let randomEntry = relatedEntries.pop();
+                    let wrongChoice = randomEntry.建築家;
+                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
                 }
-            }
 
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
+                choices = shuffleArray(choices); 
+
+                questionsList.push({
+                    type: "multiple",
+                    question: questionText,
+                    choices: choices,
+                    correct: correctAnswer
+                });
+            }
         });
 
         // ✅ 20問ランダムに選択
@@ -140,18 +150,25 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("question-text").textContent = questionObj.question;
         document.getElementById("choices").innerHTML = "";
 
-        ["〇", "✕"].forEach((option, index) => {
-            const btn = document.createElement("button");
-            btn.textContent = option;
-            btn.classList.add("choice-btn");
-            btn.onclick = () => checkAnswer(index === 0, questionObj);
-            document.getElementById("choices").appendChild(btn);
-        });
+        if (questionObj.type === "truefalse") {
+            ["〇", "✕"].forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = option;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(index === 0, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        } else {
+            questionObj.choices.forEach(choice => {
+                const btn = document.createElement("button");
+                btn.textContent = choice;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(choice === questionObj.correct, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        }
 
-        // ✅ 正解・不正解の表示をリセット
         document.getElementById("result").textContent = "";
-
-        // ✅ 「次の問題へ」ボタンを隠す
         document.getElementById("next-question").style.display = "none";
     }
 
@@ -168,8 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         currentQuestionIndex++;
-
-        // ✅ 「次の問題へ」ボタンを表示
         document.getElementById("next-question").style.display = "block";
     }
 
@@ -183,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loadQuestion();
     });
 
-    // ✅ 「スタートに戻る」ボタンを修正
     document.getElementById("restart-button").addEventListener("click", () => {
         console.log("📌 スタートに戻るボタンが押されました");
         document.getElementById("quiz-container").style.display = "none";
