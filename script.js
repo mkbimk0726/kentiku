@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
-    // ✅ スマホ画面上にデバッグログを表示する関数
+    // ✅ デバッグログを画面上に表示
     function logToScreen(message) {
         let logDiv = document.getElementById("debug-log");
         if (!logDiv) {
@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
         logDiv.innerHTML += message + "<br>";
     }
 
-    // ✅ console.log を画面表示用に拡張
     console.log = (function(origConsoleLog) {
         return function(message) {
             origConsoleLog(message);
@@ -40,8 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch("/question.csv");
             const text = await response.text();
-            console.log('📌 CSV を取得しました:', text.slice(0, 100)); // 先頭100文字のみ表示
-            questions = generateQuestions(parseCSV(text));
+            console.log('📌 CSV 取得内容 (先頭100文字):', text.slice(0, 100));
+            let parsedData = parseCSV(text);
+
+            console.log('📌 CSV パース後:', parsedData);
+            questions = generateQuestions(parsedData);
+
             console.log('📌 生成された問題:', questions);
 
             if (questions.length > 0) {
@@ -50,12 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("❌ 問題が生成されませんでした");
             }
         } catch (error) {
-            console.error('❌ CSV の読み込みエラー:', error);
+            console.error('❌ CSV 読み込みエラー:', error);
         }
     }
 
     function parseCSV(csvText) {
-        console.log('📌 parseCSV() が実行されました');
+        console.log('📌 parseCSV() 実行');
         let result = [];
         let parsed = Papa.parse(csvText, { header: true });
 
@@ -74,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        console.log('📌 パース後の CSV データ:', result);
         return result;
     }
 
@@ -161,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function loadQuestion() {
-        console.log('📌 loadQuestion() が実行されました');
+        console.log('📌 loadQuestion() 実行');
         if (currentQuestionIndex >= 20 || questions.length === 0) {
             showEndScreen();
             return;
@@ -172,8 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("question-text").textContent = questionObj.question;
         document.getElementById("choices").innerHTML = "";
-        document.getElementById("result").textContent = "";
-        document.getElementById("explanation").textContent = "";
         document.getElementById("next-question").style.display = "none";
 
         if (questionObj.type === "truefalse") {
@@ -184,38 +184,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
                 document.getElementById("choices").appendChild(btn);
             });
-        } else if (questionObj.choices.length > 0) {
-            questionObj.choices.forEach(choice => {
-                const btn = document.createElement("button");
-                btn.textContent = choice;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice, questionObj);
-                document.getElementById("choices").appendChild(btn);
-            });
         }
-    }
-
-    function checkAnswer(userAnswer, questionObj) {
-        console.log('📌 checkAnswer() が実行されました', userAnswer, questionObj);
-        let isCorrect = userAnswer === questionObj.correct;
-
-        document.getElementById("result").textContent = isCorrect ? "正解！" : "不正解...";
-        document.getElementById("next-question").style.display = "block";
-        currentQuestionIndex++;
-    }
-
-    function showEndScreen() {
-        document.getElementById("quiz-container").style.display = "none";
-        document.getElementById("end-screen").style.display = "block";
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
         console.log('📌 スタートボタンが押されました');
         loadCSV();
-    });
-
-    document.getElementById("next-question").addEventListener("click", () => {
-        console.log('📌 次の問題へ進みます');
-        loadQuestion();
     });
 });
