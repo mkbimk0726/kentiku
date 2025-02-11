@@ -77,8 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
             dynamicTyping: true
         });
 
-        // ✅ CSVのカラム名を確認
-        console.log("📌 CSVのカラム名:", parsed.meta.fields);  // ← 追加
+        // ✅ カラム名のデバッグ（\ufeff やスペースを削除）
+        parsed.meta.fields = parsed.meta.fields.map(f => f.trim().replace(/\ufeff/g, ""));
+        console.log("📌 修正後のCSVカラム名:", parsed.meta.fields);
 
         console.log("📌 パース結果の生データ:", parsed.data);
         
@@ -144,31 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("📌 最終的な問題リスト:", questionsList);  // ← 追加
         return questionsList;
-    }
-
-    function loadQuestion() {
-        console.log('📌 loadQuestion() 実行');
-        if (currentQuestionIndex >= 20 || questions.length === 0) {
-            showEndScreen();
-            return;
-        }
-
-        const questionObj = questions[currentQuestionIndex];
-        console.log('📌 出題:', questionObj);
-
-        document.getElementById("question-text").textContent = questionObj.question;
-        document.getElementById("choices").innerHTML = "";
-        document.getElementById("next-question").style.display = "none";
-
-        if (questionObj.type === "truefalse") {
-            ["〇", "✕"].forEach((option, index) => {
-                const btn = document.createElement("button");
-                btn.textContent = option;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
-                document.getElementById("choices").appendChild(btn);
-            });
-        }
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
