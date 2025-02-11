@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let questions = [];
     let currentQuestionIndex = 0;
+    let correctAnswers = 0;
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
@@ -26,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (questions.length > 0) {
                 console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
-                
+
                 // ✅ スタートボタンを非表示
                 document.getElementById("start-button").style.display = "none";  
 
@@ -120,8 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
         
-        if (questions.length === 0 || currentQuestionIndex >= questions.length) {
-            console.error("❌ 質問データが空です。");
+        if (currentQuestionIndex >= questions.length) {
+            console.log("📌 全ての問題が終了しました。終了画面へ移行");
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("end-screen").style.display = "block";
+            document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
             return;
         }
 
@@ -134,16 +138,23 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // ✅ 画面のテキストを更新
         questionTextElem.textContent = questionObj.question;
-        document.getElementById("choices").innerHTML = "";
+
+        // ✅ 選択肢をクリアして、新しいものを追加
+        let choicesContainer = document.getElementById("choices");
+        choicesContainer.innerHTML = "";  // ← ここでクリア
 
         ["〇", "✕"].forEach((option, index) => {
             const btn = document.createElement("button");
             btn.textContent = option;
             btn.classList.add("choice-btn");
             btn.onclick = () => checkAnswer(index === 0, questionObj);
-            document.getElementById("choices").appendChild(btn);
+            choicesContainer.appendChild(btn);
         });
+
+        // ✅ 「次の問題へ」ボタンを隠す
+        document.getElementById("next-question").style.display = "none";
     }
 
     function checkAnswer(userAnswer, questionObj) {
@@ -154,7 +165,13 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "正解！"
             : "不正解！";
 
+        if (userAnswer === questionObj.correct) {
+            correctAnswers++;
+        }
+
         currentQuestionIndex++;
+
+        // ✅ 「次の問題へ」ボタンを表示
         document.getElementById("next-question").style.display = "block";
     }
 
@@ -164,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("next-question").addEventListener("click", () => {
+        console.log("📌 次の問題ボタンが押されました");
         loadQuestion();
     });
 });
