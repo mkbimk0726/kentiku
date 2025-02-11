@@ -95,51 +95,50 @@ function shuffleArray(array) {
     }
 
     function generateQuestions(data) {
-        let questionsList = [];
-        console.log("📌 generateQuestions() の入力データ:", data);
+    let questionsList = [];
+    console.log("📌 generateQuestions() の入力データ:", data);
 
-        data.forEach(entry => {
-            let isTrueFalse = Math.random() < 0.5;
-            let questionText, correctAnswer, choices = [];
+    data.forEach(entry => {
+        let isTrueFalse = Math.random() < 0.5;
+        let questionText, correctAnswer, choices = [];
 
-            if (isTrueFalse) {
-                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                correctAnswer = true;
+        if (isTrueFalse) {
+            questionText = `${entry.都市計画名.trim()} は ${entry.建築家.trim()} が ${entry.特徴1.trim()}`;
+            correctAnswer = true;
 
-                questionsList.push({
-                    type: "truefalse",
-                    question: questionText,
-                    correct: correctAnswer
-                });
-            } else {
-                questionText = `${entry.都市計画名} は誰が設計したか？`;
-                correctAnswer = entry.建築家;
-                choices.push(correctAnswer);
+            questionsList.push({
+                type: "truefalse",
+                question: questionText,
+                correct: correctAnswer
+            });
+        } else {
+            questionText = `${entry.都市計画名.trim()} は誰が設計したか？`;
+            correctAnswer = entry.建築家.trim();
+            choices.push(correctAnswer);
 
-                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.建築家;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
-
-                choices = shuffleArray(choices); 
-
-                questionsList.push({
-                    type: "multiple",
-                    question: questionText,
-                    choices: choices,
-                    correct: correctAnswer
-                });
+            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+            while (choices.length < 4 && relatedEntries.length > 0) {
+                let randomEntry = relatedEntries.pop();
+                let wrongChoice = randomEntry.建築家.trim();
+                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
             }
-        });
 
-        // ✅ 20問ランダムに選択
-        questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
-        console.log("📌 ランダムに選択された問題リスト:", questionsList);
+            choices = shuffleArray(choices); 
 
-        return questionsList;
-    }
+            questionsList.push({
+                type: "multiple",
+                question: questionText,
+                choices: choices,
+                correct: correctAnswer
+            });
+        }
+    });
+
+    questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+    console.log("📌 ランダムに選択された問題リスト:", questionsList);
+
+    return questionsList;
+}
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
