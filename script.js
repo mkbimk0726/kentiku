@@ -181,20 +181,20 @@ function shuffleArray(array) {
     }
 
     function checkAnswer(userAnswer, questionObj) {
-        console.log("📌 ユーザーの回答:", userAnswer);
-        console.log("📌 正解:", questionObj.correct);
+    console.log("📌 ユーザーの回答:", userAnswer);
+    console.log("📌 正解:", questionObj.correct);
 
-        document.getElementById("result").textContent = userAnswer === questionObj.correct
-            ? "正解！"
-            : "不正解！";
-
-        if (userAnswer === questionObj.correct) {
-            correctAnswers++;
-        }
-
-        currentQuestionIndex++;
-        document.getElementById("next-question").style.display = "block";
+    // ✅ 空白や改行を削除して厳密比較
+    if (userAnswer.toString().trim() === questionObj.correct.toString().trim()) {
+        document.getElementById("result").textContent = "正解！";
+        correctAnswers++;
+    } else {
+        document.getElementById("result").textContent = "不正解！";
     }
+
+    currentQuestionIndex++;
+    document.getElementById("next-question").style.display = "block";
+}
 
     document.getElementById("start-button").addEventListener("click", () => {
         console.log('📌 スタートボタンが押されました');
