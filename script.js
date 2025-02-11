@@ -95,11 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             result.push({
-                id: parseInt(row[ID1]),
-                groupId: parseInt(row[ID2]),
-                都市計画名: (row[都市計画名] ?? "").toString().trim(),
-                建築家: (row[建築家] ?? "").toString().trim(),
-                特徴1: (row[特徴1] ?? "").toString().trim()
+                id: parseInt(row["ID1"]),
+                groupId: parseInt(row["ID2"]),
+                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
+                建築家: (row["建築家"] ?? "").toString().trim(),
+                特徴1: (row["特徴1"] ?? "").toString().trim()
             });
         });
 
