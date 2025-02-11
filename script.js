@@ -34,28 +34,34 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
 
-    async function loadCSV() {
-        console.log('📌 loadCSV() が実行されました');
-        try {
-            const response = await fetch("/questions.csv");
-            const text = await response.text();
-            console.log('📌 CSV 取得内容 (先頭100文字):', text.slice(0, 100));
-            let parsedData = parseCSV(text);
-
-            console.log('📌 CSV パース後:', parsedData);
-            questions = generateQuestions(parsedData);
-
-            console.log('📌 生成された問題:', questions);
-
-            if (questions.length > 0) {
-                initializeQuestions();
-            } else {
-                console.error("❌ 問題が生成されませんでした");
-            }
-        } catch (error) {
-            console.error('❌ CSV 読み込みエラー:', error);
+   async function loadCSV() {
+    console.log('📌 loadCSV() が実行されました');
+    try {
+        const response = await fetch("/questions.csv");
+        if (!response.ok) {
+            throw new Error(`HTTPエラー: ${response.status}`);
         }
+        
+        const text = await response.text();
+        console.log(`📌 CSV 取得内容 (先頭100文字): ${text.slice(0, 100)}`); // 🔍デバッグ用
+        let parsedData = parseCSV(text);
+
+        if (!parsedData || parsedData.length === 0) {
+            throw new Error("CSVのパース結果が空です");
+        }
+
+        console.log('📌 CSV パース後:', parsedData);
+        questions = generateQuestions(parsedData);
+
+        if (questions.length > 0) {
+            initializeQuestions();
+        } else {
+            console.error("❌ 問題が生成されませんでした");
+        }
+    } catch (error) {
+        console.error('❌ CSV 読み込みエラー:', error);
     }
+   }
 
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
