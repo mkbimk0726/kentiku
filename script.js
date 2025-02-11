@@ -87,86 +87,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function generateQuestions(data) {
-    let questionsList = [];
-    console.log("📌 generateQuestions() の入力データ:", data);
+        let questionsList = [];
+        console.log("📌 generateQuestions() の入力データ:", data);
 
-    data.forEach(entry => {
-        let isTrueFalse = Math.random() < 0.5;
-        let questionText, correctAnswer, choices = [];
+        data.forEach(entry => {
+            let isTrueFalse = Math.random() < 0.5;
+            let questionText, correctAnswer, choices = [];
 
-        if (isTrueFalse) {
-            // ✅ 〇✕問題（True/False）
-            questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-            correctAnswer = true;
+            if (isTrueFalse) {
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                correctAnswer = true;
 
-            questionsList.push({
-                type: "truefalse",
-                question: questionText,
-                correct: correctAnswer
-            });
-        } else {
-            // ✅ 4択問題のタイプをランダムに選択（建築家を答える / 都市計画を答える）
-            let isArchitectQuestion = Math.random() < 0.5;
-
-            if (isArchitectQuestion) {
-                // ✅ 「この都市計画は誰が設計したか？」（建築家を答える）
+                questionsList.push({
+                    type: "truefalse",
+                    question: questionText,
+                    correct: correctAnswer
+                });
+            } else {
                 questionText = `${entry.都市計画名} は誰が設計したか？`;
                 correctAnswer = entry.建築家;
                 choices.push(correctAnswer);
 
-                // ✅ 同じ `ID2`（グループID）の建築家を誤答候補に追加
-                let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.建築家 !== correctAnswer);
-                
-                // ✅ 誤答が足りない場合は、他のグループから補充
-                let extraEntries = data.filter(q => q.groupId !== entry.groupId);
-
-                while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
-                    let randomEntry = relatedEntries.length > 0 
-                        ? relatedEntries.pop() 
-                        : extraEntries.pop(); // 誤答が足りなければ別グループから
-
+                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+                while (choices.length < 4 && relatedEntries.length > 0) {
+                    let randomEntry = relatedEntries.pop();
                     let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
                 }
-            } else {
-                // ✅ 「この建築家が手がけた都市計画は？」（都市計画を答える）
-                questionText = `${entry.建築家} は ${entry.特徴1} どの都市計画を手がけたか？`;
-                correctAnswer = entry.都市計画名;
-                choices.push(correctAnswer);
 
-                // ✅ 同じ `ID2`（グループID）の都市計画を誤答候補に追加
-                let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.都市計画名 !== correctAnswer);
-                
-                // ✅ 誤答が足りない場合は、他のグループから補充
-                let extraEntries = data.filter(q => q.groupId !== entry.groupId);
+                choices = shuffleArray(choices); 
 
-                while (choices.length < 4 && (relatedEntries.length > 0 || extraEntries.length > 0)) {
-                    let randomEntry = relatedEntries.length > 0 
-                        ? relatedEntries.pop() 
-                        : extraEntries.pop(); // 誤答が足りなければ別グループから
-
-                    let wrongChoice = randomEntry.都市計画名;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
+                questionsList.push({
+                    type: "multiple",
+                    question: questionText,
+                    choices: choices,
+                    correct: correctAnswer
+                });
             }
+        });
 
-            choices = shuffleArray(choices);
+        questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+        console.log("📌 ランダムに選択された問題リスト:", questionsList);
 
-            questionsList.push({
-                type: "multiple",
-                question: questionText,
-                choices: choices,
-                correct: correctAnswer
-            });
-        }
-    });
-
-    // ✅ ランダムに20問選択
-    questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
-    console.log("📌 ランダムに選択された問題リスト:", questionsList);
-
-    return questionsList;
-}
+        return questionsList;
+    }
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
