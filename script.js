@@ -42,6 +42,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function parseCSV(csvText) {
+        console.log('📌 parseCSV() 実行');
+        csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+        let parsed = Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true
+        });
+
+        if (!parsed.meta || !parsed.meta.fields) {
+            console.error("❌ CSVのカラム名が取得できませんでした");
+            console.log("📌 `parsed` の中身:", parsed);
+            return [];
+        }
+
+        parsed.meta.fields = parsed.meta.fields.map(f => f.trim().replace(/\ufeff/g, ""));
+        console.log("📌 修正後のCSVカラム名:", parsed.meta.fields);
+        console.log("📌 パース結果の生データ:", parsed.data);
+
+        return parsed.data.map(row => ({
+            id: parseInt(row["ID1"]),
+            groupId: parseInt(row["ID2"]),
+            都市計画名: row["都市計画名"].toString().trim(),
+            建築家: row["建築家"].toString().trim(),
+            特徴1: row["特徴1"].toString().trim()
+        }));
+    }
+
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
 
@@ -64,7 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const btn = document.createElement("button");
                 btn.textContent = option;
                 btn.classList.add("choice-btn");
-                // ✅ 〇✕問題は `questionObj.correct` が `true/false`
                 btn.onclick = () => checkAnswer(index === 0 === questionObj.correct);
                 document.getElementById("choices").appendChild(btn);
             });
@@ -73,7 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const btn = document.createElement("button");
                 btn.textContent = choice;
                 btn.classList.add("choice-btn");
-                // ✅ 4択問題も `true/false` で判定
                 btn.onclick = () => checkAnswer(choice === questionObj.correct);
                 document.getElementById("choices").appendChild(btn);
             });
