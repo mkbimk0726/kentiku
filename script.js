@@ -1,38 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log('📌 スクリプトが読み込まれました');
 
-    // ✅ デバッグログを画面上に表示する関数
-    function logToScreen(message) {
-        let logDiv = document.getElementById("debug-log");
-        if (!logDiv) {
-            logDiv = document.createElement("div");
-            logDiv.id = "debug-log";
-            logDiv.style.position = "fixed";
-            logDiv.style.top = "10px";
-            logDiv.style.left = "10px";
-            logDiv.style.width = "90%";
-            logDiv.style.height = "30%";
-            logDiv.style.overflowY = "auto";
-            logDiv.style.background = "rgba(0, 0, 0, 0.8)";
-            logDiv.style.color = "white";
-            logDiv.style.padding = "10px";
-            logDiv.style.fontSize = "12px";
-            logDiv.style.zIndex = "9999";
-            document.body.appendChild(logDiv);
-        }
-        logDiv.innerHTML += message + "<br>";
-    }
-
-    console.log = (function(origConsoleLog) {
-        return function(message) {
-            origConsoleLog(message);
-            logToScreen(message);
-        };
-    })(console.log);
-
     let questions = [];
     let currentQuestionIndex = 0;
-    let correctAnswers = 0;
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
@@ -41,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) {
                 throw new Error(`HTTPエラー: ${response.status}`);
             }
-            
+
             const text = await response.text();
             console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`);
 
@@ -56,7 +26,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (questions.length > 0) {
                 console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
-                loadQuestion();  // ✅ 修正: `initializeQuestions()` → `loadQuestion()`
+                
+                // ✅ スタートボタンを非表示
+                document.getElementById("start-button").style.display = "none";  
+
+                // ✅ クイズコンテナを表示
+                document.getElementById("quiz-container").style.display = "block";  
+
+                // ✅ 最初の問題を表示
+                loadQuestion();
             } else {
                 console.error("❌ 問題が生成されませんでした");
             }
@@ -67,32 +45,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
-
-        // ✅ 改行コードを統一
         csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-        // ✅ CSV をパース（header: false に変更）
         let parsed = Papa.parse(csvText, {
-            header: false,
+            header: true,
             skipEmptyLines: true,
             dynamicTyping: true
         });
 
-        console.log("📌 `parsed` の中身:", parsed);
+        if (!parsed.meta || !parsed.meta.fields) {
+            console.error("❌ CSVのカラム名が取得できませんでした");
+            console.log("📌 `parsed` の中身:", parsed);
+            return [];
+        }
 
-        // ✅ カラム名を手動で設定
-        let columnNames = ["ID1", "ID2", "都市計画", "現代歴史", "地域", "都市計画名", "建築家", "特徴1"];
-        let dataRows = parsed.data.slice(1);  // 1行目をスキップ（カラム名とする）
+        parsed.meta.fields = parsed.meta.fields.map(f => f.trim().replace(/\ufeff/g, ""));
+        console.log("📌 修正後のCSVカラム名:", parsed.meta.fields);
+        console.log("📌 パース結果の生データ:", parsed.data);
 
         let result = [];
-        dataRows.forEach(row => {
-            let rowObj = {};
-            columnNames.forEach((col, index) => {
-                rowObj[col] = row[index] || "";
-            });
+        parsed.data.forEach(row => {
+            if (!row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
+                console.warn("⚠ 無効な行 (スキップ):", row);
+                return;
+            }
 
-            console.log("📌 手動で作成した行データ:", rowObj);
-            result.push(rowObj);
+            result.push({
+                id: parseInt(row["ID1"]),
+                groupId: parseInt(row["ID2"]),
+                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
+                建築家: (row["建築家"] ?? "").toString().trim(),
+                特徴1: (row["特徴1"] ?? "").toString().trim()
+            });
         });
 
         console.log("📌 最終的なパース結果:", result);
@@ -104,30 +88,29 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("📌 generateQuestions() の入力データ:", data);
 
         data.forEach(entry => {
-            console.log("📌 現在処理中のエントリ:", entry);
-
-            let relatedEntries = data.filter(q => q.ID2 === entry.ID2 && q.ID1 !== entry.ID1);
             let isTrueFalse = Math.random() < 0.5;
+            let questionText, correctAnswer;
 
             if (isTrueFalse) {
-                let isTrue = Math.random() < 0.5;
-                let questionText, correctAnswer;
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                correctAnswer = true;
+            } else {
+                let questionOptions = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
+                let wrongEntry = questionOptions.length > 0 
+                    ? questionOptions[Math.floor(Math.random() * questionOptions.length)]
+                    : null;
 
-                if (isTrue || relatedEntries.length === 0) {
-                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                    correctAnswer = true;
-                } else {
-                    let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
+                if (wrongEntry) {
                     questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${entry.特徴1}`;
                     correctAnswer = false;
                 }
-
-                questionsList.push({
-                    type: "truefalse",
-                    question: questionText,
-                    correct: correctAnswer
-                });
             }
+
+            questionsList.push({
+                type: "truefalse",
+                question: questionText,
+                correct: correctAnswer
+            });
         });
 
         console.log("📌 最終的な問題リスト:", questionsList);
@@ -136,31 +119,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
-        if (currentQuestionIndex >= 20 || questions.length === 0) {
-            showEndScreen();
+        
+        if (questions.length === 0 || currentQuestionIndex >= questions.length) {
+            console.error("❌ 質問データが空です。");
             return;
         }
 
         const questionObj = questions[currentQuestionIndex];
         console.log('📌 出題:', questionObj);
 
-        document.getElementById("question-text").textContent = questionObj.question;
-        document.getElementById("choices").innerHTML = "";
-        document.getElementById("next-question").style.display = "none";
-
-        if (questionObj.type === "truefalse") {
-            ["〇", "✕"].forEach((option, index) => {
-                const btn = document.createElement("button");
-                btn.textContent = option;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
-                document.getElementById("choices").appendChild(btn);
-            });
+        let questionTextElem = document.getElementById("question-text");
+        if (!questionTextElem) {
+            console.error("❌ `question-text` が見つかりません！");
+            return;
         }
+
+        questionTextElem.textContent = questionObj.question;
+        document.getElementById("choices").innerHTML = "";
+
+        ["〇", "✕"].forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.textContent = option;
+            btn.classList.add("choice-btn");
+            btn.onclick = () => checkAnswer(index === 0, questionObj);
+            document.getElementById("choices").appendChild(btn);
+        });
+    }
+
+    function checkAnswer(userAnswer, questionObj) {
+        console.log("📌 ユーザーの回答:", userAnswer);
+        console.log("📌 正解:", questionObj.correct);
+
+        document.getElementById("result").textContent = userAnswer === questionObj.correct
+            ? "正解！"
+            : "不正解！";
+
+        currentQuestionIndex++;
+        document.getElementById("next-question").style.display = "block";
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
         console.log('📌 スタートボタンが押されました');
         loadCSV();
+    });
+
+    document.getElementById("next-question").addEventListener("click", () => {
+        loadQuestion();
     });
 });
