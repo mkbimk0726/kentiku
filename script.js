@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             const text = await response.text();
-            console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`); // 🔍デバッグ用
+            console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`);
 
             let parsedData = parseCSV(text);
 
@@ -55,7 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
             questions = generateQuestions(parsedData);
 
             if (questions.length > 0) {
-                initializeQuestions();
+                console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
+                loadQuestion();  // ✅ 修正: `initializeQuestions()` → `loadQuestion()`
             } else {
                 console.error("❌ 問題が生成されませんでした");
             }
@@ -70,42 +71,28 @@ document.addEventListener("DOMContentLoaded", () => {
         // ✅ 改行コードを統一
         csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-        // ✅ CSV をパース
+        // ✅ CSV をパース（header: false に変更）
         let parsed = Papa.parse(csvText, {
-            header: true,
+            header: false,
             skipEmptyLines: true,
             dynamicTyping: true
         });
 
-        // ✅ カラム名のデバッグ（\ufeff やスペースを削除）
-        parsed.meta.fields = parsed.meta.fields.map(f => f.trim().replace(/\ufeff/g, ""));
-        console.log("📌 修正後のCSVカラム名:", parsed.meta.fields);
+        console.log("📌 `parsed` の中身:", parsed);
 
-        console.log("📌 パース結果の生データ:", parsed.data);
-        
-        // ✅ パース時のエラーをチェック
-        if (parsed.errors.length > 0) {
-            console.error("❌ CSV パースエラー:", parsed.errors);
-        }
+        // ✅ カラム名を手動で設定
+        let columnNames = ["ID1", "ID2", "都市計画", "現代歴史", "地域", "都市計画名", "建築家", "特徴1"];
+        let dataRows = parsed.data.slice(1);  // 1行目をスキップ（カラム名とする）
 
         let result = [];
-        parsed.data.forEach(row => {
-            // 各データが正しく取得できているかチェック
-            console.log("📌 解析中の行:", row);
-            console.log("📌 行のキー:", Object.keys(row));  // ← 追加
-
-            if (!row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
-                console.warn("⚠ 無効な行 (スキップ):", row);
-                return;
-            }
-
-            result.push({
-                id: parseInt(row["ID1"]),
-                groupId: parseInt(row["ID2"]),
-                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
-                建築家: (row["建築家"] ?? "").toString().trim(),
-                特徴1: (row["特徴1"] ?? "").toString().trim()
+        dataRows.forEach(row => {
+            let rowObj = {};
+            columnNames.forEach((col, index) => {
+                rowObj[col] = row[index] || "";
             });
+
+            console.log("📌 手動で作成した行データ:", rowObj);
+            result.push(rowObj);
         });
 
         console.log("📌 最終的なパース結果:", result);
@@ -114,12 +101,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function generateQuestions(data) {
         let questionsList = [];
-        console.log("📌 generateQuestions() の入力データ:", data);  // ← 追加
+        console.log("📌 generateQuestions() の入力データ:", data);
 
         data.forEach(entry => {
-            console.log("📌 現在処理中のエントリ:", entry);  // ← 追加
+            console.log("📌 現在処理中のエントリ:", entry);
 
-            let relatedEntries = data.filter(q => q.groupId === entry.groupId && q.id !== entry.id);
+            let relatedEntries = data.filter(q => q.ID2 === entry.ID2 && q.ID1 !== entry.ID1);
             let isTrueFalse = Math.random() < 0.5;
 
             if (isTrueFalse) {
@@ -143,8 +130,33 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        console.log("📌 最終的な問題リスト:", questionsList);  // ← 追加
+        console.log("📌 最終的な問題リスト:", questionsList);
         return questionsList;
+    }
+
+    function loadQuestion() {
+        console.log('📌 loadQuestion() 実行');
+        if (currentQuestionIndex >= 20 || questions.length === 0) {
+            showEndScreen();
+            return;
+        }
+
+        const questionObj = questions[currentQuestionIndex];
+        console.log('📌 出題:', questionObj);
+
+        document.getElementById("question-text").textContent = questionObj.question;
+        document.getElementById("choices").innerHTML = "";
+        document.getElementById("next-question").style.display = "none";
+
+        if (questionObj.type === "truefalse") {
+            ["〇", "✕"].forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = option;
+                btn.classList.add("choice-btn");
+                btn.onclick = () => checkAnswer(index === 0 ? true : false, questionObj);
+                document.getElementById("choices").appendChild(btn);
+            });
+        }
     }
 
     document.getElementById("start-button").addEventListener("click", () => {
