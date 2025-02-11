@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             const text = await response.text();
-            console.log(`📌 CSV 取得内容 (先頭100文字): ${text.slice(0, 100)}`);
+            console.log(`📌 CSV 取得内容 (先頭100文字): ${text.slice(0, 100)}`); // 🔍デバッグ用
             let parsedData = parseCSV(text);
 
             if (!parsedData || parsedData.length === 0) {
@@ -63,50 +63,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-   function parseCSV(csvText) {
-    console.log('📌 parseCSV() 実行');
+    function parseCSV(csvText) {
+        console.log('📌 parseCSV() 実行');
 
-    // ✅ 改行コードを統一
-    csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        // ✅ 改行コードを統一
+        csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-    // ✅ CSV をパース
-    let parsed = Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true
-    });
+        // ✅ CSV をパース
+        let parsed = Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true
+        });
 
-    console.log("📌 パース結果の生データ:", parsed.data);
+        console.log("📌 パース結果の生データ:", parsed.data);
 
-    // ✅ パース時のエラーをチェック
-    if (parsed.errors.length > 0) {
-        console.error("❌ CSV パースエラー:", parsed.errors);
-    }
-
-    let result = [];
-
-    parsed.data.forEach(row => {
-        // 各データが正しく取得できているかチェック
-        console.log("📌 解析中の行:", row);
-
-        if (!row["ID1"] || !row["都市計画"] || !row["建築家"] || !row["特徴1"]) {
-            console.warn("⚠ 無効な行 (スキップ):", row);
-            return; 
+        // ✅ パース時のエラーをチェック
+        if (parsed.errors.length > 0) {
+            console.error("❌ CSV パースエラー:", parsed.errors);
         }
 
-        result.push({
-            id: parseInt(row["ID1"]),
-            groupId: parseInt(row["ID2"]),
-            都市計画: row["都市計画"].trim(),
-            建築家: row["建築家"].trim(),
-            特徴1: row["特徴1"].trim()
+        let result = [];
+
+        parsed.data.forEach(row => {
+            // 各データが正しく取得できているかチェック
+            console.log("📌 解析中の行:", row);
+
+            if (!row["ID1"] || !row["都市計画名"] || !row["建築家"] || !row["特徴1"]) {
+                console.warn("⚠ 無効な行 (スキップ):", row);
+                return; 
+            }
+
+            result.push({
+                id: parseInt(row["ID1"]),
+                groupId: parseInt(row["ID2"]),
+                都市計画名: (row["都市計画名"] ?? "").toString().trim(),
+                建築家: (row["建築家"] ?? "").toString().trim(),
+                特徴1: (row["特徴1"] ?? "").toString().trim()
+            });
         });
-    });
 
-    console.log("📌 最終的なパース結果:", result);
-    return result;
-}
-
+        console.log("📌 最終的なパース結果:", result);
+        return result;
+    }
 
     function generateQuestions(data) {
         let questionsList = [];
@@ -120,20 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let questionText, correctAnswer;
 
                 if (isTrue || relatedEntries.length === 0) {
-                    questionText = `${entry.都市計画} は ${entry.建築家} が設計した`;
+                    questionText = `${entry.都市計画名} は ${entry.建築家} が設計した`;
                     correctAnswer = true;
                 } else {
                     let wrongEntry = relatedEntries[Math.floor(Math.random() * relatedEntries.length)];
-                    let randType = Math.floor(Math.random() * 3);
-
-                    if (randType === 0) {
-                        questionText = `${entry.都市計画} は ${wrongEntry.建築家} が設計した`;
-                    } else if (randType === 1) {
-                        questionText = `${wrongEntry.都市計画} は ${entry.建築家} が設計した`;
-                    } else {
-                        questionText = `${entry.都市計画} は ${entry.建築家} が ${wrongEntry.特徴1}`;
-                    }
-
+                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が設計した`;
                     correctAnswer = false;
                 }
 
@@ -143,14 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     correct: correctAnswer
                 });
             } else {
-                let questionText, correctAnswer, choices = [];
+                let questionText = `${entry.都市計画名} は誰が設計したか？`;
+                let correctAnswer = entry.建築家;
+                let choices = [correctAnswer];
 
-                questionText = `${entry.都市計画} は ${entry.特徴1} 設計者は誰か？`;
-                correctAnswer = entry.建築家;
-
-                choices.push(correctAnswer);
                 while (choices.length < 4 && relatedEntries.length > 0) {
-                    let wrongChoice = relatedEntries.pop().建築家;
+                    let randomEntry = relatedEntries.pop();
+                    let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
                 }
 
@@ -176,10 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
         loadQuestion();
     }
 
-    // ✅ `loadQuestion()` を定義 (エラーを修正)
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
-        if (currentQuestionIndex >= questions.length) {
+        if (currentQuestionIndex >= 20 || questions.length === 0) {
             showEndScreen();
             return;
         }
