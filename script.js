@@ -63,28 +63,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
    }
 
-    function parseCSV(csvText) {
-        console.log('📌 parseCSV() 実行');
-        let result = [];
-        let parsed = Papa.parse(csvText, { header: true });
+  function parseCSV(csvText) {
+    console.log('📌 parseCSV() 実行');
 
-        if (parsed.errors.length > 0) {
-            console.error("❌ CSV パースエラー:", parsed.errors);
+    let parsed = Papa.parse(csvText, { header: true });
+
+    // パース時のエラーをチェック
+    if (parsed.errors.length > 0) {
+        console.error("❌ CSV パースエラー:", parsed.errors);
+    }
+
+    console.log("📌 パース結果の生データ:", parsed);
+
+    let result = [];
+
+    parsed.data.forEach(row => {
+        // 各データが正しく取得できているかチェック
+        console.log("📌 解析中の行:", row);
+
+        if (!row.ID1 || !row["都市計画"]) {
+            console.warn("⚠ 無効な行 (スキップ):", row);
+            return; 
         }
 
-        parsed.data.forEach(row => {
-            if (!row.id || !row["建築物"]) return;
-            result.push({
-                id: parseInt(row.id),
-                groupId: parseInt(row.groupId),
-                建築物: row["建築物"].trim(),
-                建築家: row["建築家"].trim(),
-                設計: row["設計"].trim()
-            });
+        result.push({
+            id: parseInt(row.ID1),
+            groupId: parseInt(row.ID2),
+            都市計画: row["都市計画"].trim(),
+            建築家: row["建築家"].trim(),
+            特徴1: row["特徴1"].trim()
         });
+    });
 
-        return result;
-    }
+    console.log("📌 最終的なパース結果:", result);
+
+    return result;
+  }
 
     function generateQuestions(data) {
         let questionsList = [];
