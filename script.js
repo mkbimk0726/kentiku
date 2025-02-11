@@ -4,6 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
+// ✅ 配列をシャッフルする関数
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
