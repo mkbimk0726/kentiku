@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadCSV() {
         console.log('📌 loadCSV() が実行されました');
         try {
-            const response = await fetch("/question.csv");
+            const response = await fetch("/questions.csv");
             const text = await response.text();
             console.log('📌 CSV 取得内容 (先頭100文字):', text.slice(0, 100));
             let parsedData = parseCSV(text);
