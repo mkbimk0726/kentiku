@@ -97,31 +97,68 @@ function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
-    if (questionObj.type === "truefalse") {
-        // 〇✕問題で間違えたら 4択問題に変える
+    // 元のデータを取得（IDから関連データを引く）
+    let relatedEntries = questions.filter(q => q.id === questionObj.id);
+    let relatedEntry = relatedEntries.length > 0 ? relatedEntries[0] : null;
+
+    if (!relatedEntry) {
+        console.warn("⚠ 元データが見つからなかったため、再出題をスキップ");
+        return;
+    }
+
+    if (questionObj.type === "multiple") {
+        // ✅ 4択問題で間違えた場合 → 〇✕問題に変換
+        let isFalse = Math.random() < 0.5; // 50%で✕問題
+        let wrongEntry = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.建築家, "建築家").pop();
+        let wrongFeature = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.特徴1, "特徴1").pop();
+
+        if (isFalse && wrongEntry && wrongFeature) {
+            // ❌ 間違いを含んだ問題
+            newQuestion = {
+                type: "truefalse",
+                question: `${relatedEntry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}？`,
+                correct: false,
+                correctText: `${relatedEntry.都市計画名} は ${relatedEntry.建築家} が ${relatedEntry.特徴1}`,
+                id: relatedEntry.id
+            };
+        } else {
+            // ✅ 正しい〇✕問題
+            newQuestion = {
+                type: "truefalse",
+                question: `${relatedEntry.都市計画名} は ${relatedEntry.建築家} が ${relatedEntry.特徴1}？`,
+                correct: true,
+                correctText: `${relatedEntry.都市計画名} は ${relatedEntry.建築家} が ${relatedEntry.特徴1}`,
+                id: relatedEntry.id
+            };
+        }
+
+    } else if (questionObj.type === "truefalse") {
+        // ✅ 〇✕問題で間違えた場合 → 4択問題に変換
+        let choices = [relatedEntry.建築家];
+        let wrongChoices = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.建築家, "建築家");
+
+        while (choices.length < 4 && wrongChoices.length > 0) {
+            let wrongChoice = wrongChoices.pop().建築家;
+            if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+        }
+
+        choices = shuffleArray(choices);
+
         newQuestion = {
             type: "multiple",
-            question: `${questionObj.correctText} に関する正しい選択肢を選べ`,
-            choices: [questionObj.correct].concat(shuffleArray(["選択肢1", "選択肢2", "選択肢3"])), // ダミーを追加
-            correct: questionObj.correct
-        };
-    } else if (questionObj.type === "multiple") {
-        // 4択問題で間違えたら 〇✕問題に変える
-        newQuestion = {
-            type: "truefalse",
-            question: `${questionObj.correct} は正しいか？`,
-            correct: true,
-            correctText: questionObj.correct
+            question: `${relatedEntry.都市計画名} は誰が設計したか？`,
+            choices: choices,
+            correct: relatedEntry.建築家,
+            id: relatedEntry.id
         };
     }
 
     console.log(`📌 再出題を追加: ${newQuestion.question} ( ${delay}問後 )`);
 
-    // 2〜6問後の適切な位置に追加（範囲を超えたら最後に追加）
+    // 2〜6問後の適切な位置に追加
     let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
     questions.splice(insertIndex, 0, newQuestion);
 }
-
 
 
     function generateQuestions(data) {
