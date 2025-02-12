@@ -97,7 +97,18 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
     console.log("📌 generateQuestions() の入力データ:", data);
 
     data.forEach(entry => {
-        let questionType = Math.floor(Math.random() * 3); // 0: 〇✕, 1: 建築家を問う, 2: 都市計画名を問う
+        let rand = Math.random();
+        let questionType;
+        
+        // 〇✕問題を 40% に増やし、4択問題を均等に分配
+        if (rand < 0.5) {
+            questionType = 0; // 〇✕問題
+        } else if (rand < 0.75) {
+            questionType = 1; // 建築家を問う問題
+        } else {
+            questionType = 2; // 都市計画名を問う問題
+        }
+
         let questionText, correctAnswer, correctText, choices = [];
 
         if (questionType === 0) {
@@ -234,6 +245,7 @@ function highlightCorrectAnswer(correctAnswer) {
         } else {
             btn.style.backgroundColor = "lightcoral"; // 不正解は赤く
         }
+                btn.disabled = true; // 選択後にボタンを無効化
     });
 }
 
@@ -247,6 +259,8 @@ function checkAnswer(isCorrect, correctAnswer, correctText) {
     
     document.getElementById("result").textContent = resultText;
     if (isCorrect) correctAnswers++;
+    
+　　highlightCorrectAnswer(correctAnswer);
 
     currentQuestionIndex++;
     document.getElementById("next-question").style.display = "block";
