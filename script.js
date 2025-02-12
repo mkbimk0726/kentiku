@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let randomEntry = relatedEntries.pop();
                     let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                } else if (questionType === 2) {
+                } }else if (questionType === 2) {
                 questionText = ` ${entry.建築家} が ${entry.特徴1} つぎのうちどれか？`;
                 
                 correctAnswer = entry.都市計画名;
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let randomEntry = relatedEntries.pop();
                     let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }
+                }}
 
                 choices = shuffleArray(choices); 
 
