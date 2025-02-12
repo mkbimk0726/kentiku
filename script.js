@@ -97,23 +97,28 @@ function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
-    // 元のデータを取得（IDから関連データを引く）
+    // ✅ IDが undefined でないことを確認
+    if (!questionObj.id) {
+        console.error("❌ addMissedQuestion() で ID が undefined: ", questionObj);
+        return;
+    }
+
+    // ✅ 元のデータを取得
     let relatedEntries = questions.filter(q => q.id === questionObj.id);
     let relatedEntry = relatedEntries.length > 0 ? relatedEntries[0] : null;
 
     if (!relatedEntry) {
-        console.warn("⚠ 元データが見つからなかったため、再出題をスキップ");
+        console.warn("⚠ 元データが見つからなかったため、再出題をスキップ", questionObj);
         return;
     }
 
     if (questionObj.type === "multiple") {
         // ✅ 4択問題で間違えた場合 → 〇✕問題に変換
-        let isFalse = Math.random() < 0.5; // 50%で✕問題
+        let isFalse = Math.random() < 0.5;
         let wrongEntry = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.建築家, "建築家").pop();
         let wrongFeature = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.特徴1, "特徴1").pop();
 
         if (isFalse && wrongEntry && wrongFeature) {
-            // ❌ 間違いを含んだ問題
             newQuestion = {
                 type: "truefalse",
                 question: `${relatedEntry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}？`,
@@ -122,7 +127,6 @@ function addMissedQuestion(questionObj) {
                 id: relatedEntry.id
             };
         } else {
-            // ✅ 正しい〇✕問題
             newQuestion = {
                 type: "truefalse",
                 question: `${relatedEntry.都市計画名} は ${relatedEntry.建築家} が ${relatedEntry.特徴1}？`,
@@ -161,7 +165,8 @@ function addMissedQuestion(questionObj) {
 }
 
 
-    function generateQuestions(data) {
+
+function generateQuestions(data) {
     let questionsList = [];
     console.log("📌 generateQuestions() の入力データ:", data);
 
@@ -169,7 +174,6 @@ function addMissedQuestion(questionObj) {
         let rand = Math.random();
         let questionType;
         
-        // 〇✕問題を 40% に増やし、4択問題を均等に分配
         if (rand < 0.5) {
             questionType = 0; // 〇✕問題
         } else if (rand < 0.75) {
@@ -181,27 +185,16 @@ function addMissedQuestion(questionObj) {
         let questionText, correctAnswer, correctText, choices = [];
 
         if (questionType === 0) {
-            // ✅ 50%の確率で✕の問題を作る
             let isFalse = Math.random() < 0.5;
-            
-            if (isFalse) {
-                // ❌ ✕の問題を作成（間違った建築家 or 特徴を入れる）
-                let wrongEntry = getSameID2Entries(data, entry.groupId, entry.建築家, "建築家").pop();
-                let wrongFeature = getSameID2Entries(data, entry.groupId, entry.特徴1, "特徴1").pop();
+            let wrongEntry = getSameID2Entries(data, entry.groupId, entry.建築家, "建築家").pop();
+            let wrongFeature = getSameID2Entries(data, entry.groupId, entry.特徴1, "特徴1").pop();
 
-                if (wrongEntry && wrongFeature) {
-                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}`;
-                    correctAnswer = false;
-                    correctText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                } else {
-                    // 他のデータがない場合は正しい問題にフォールバック
-                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                    correctAnswer = true;
-                    correctText = questionText;
-                }
+            if (isFalse && wrongEntry && wrongFeature) {
+                questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}？`;
+                correctAnswer = false;
+                correctText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
             } else {
-                // ✅ 〇の問題（正しい情報）
-                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}？`;
                 correctAnswer = true;
                 correctText = questionText;
             }
@@ -210,11 +203,11 @@ function addMissedQuestion(questionObj) {
                 type: "truefalse",
                 question: questionText,
                 correct: correctAnswer,
-                correctText: correctText
+                correctText: correctText,
+                id: entry.id  // ✅ IDを追加
             });
 
         } else if (questionType === 1) {
-            // 建築家を問う問題
             questionText = `${entry.都市計画名} は誰が設計したか？`;
             correctAnswer = entry.建築家;
             choices.push(correctAnswer);
@@ -222,8 +215,7 @@ function addMissedQuestion(questionObj) {
             let relatedEntries = getSameID2Entries(data, entry.groupId, correctAnswer, "建築家");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
-                let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.建築家;
+                let wrongChoice = relatedEntries.pop().建築家;
                 if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
             }
 
@@ -232,11 +224,11 @@ function addMissedQuestion(questionObj) {
                 type: "multiple",
                 question: questionText,
                 choices: choices,
-                correct: correctAnswer
+                correct: correctAnswer,
+                id: entry.id  // ✅ IDを追加
             });
 
         } else if (questionType === 2) {
-            // 都市計画名を問う問題
             questionText = `${entry.建築家} が ${entry.特徴1} に関わった都市計画はどれ？`;
             correctAnswer = entry.都市計画名;
             choices.push(correctAnswer);
@@ -244,8 +236,7 @@ function addMissedQuestion(questionObj) {
             let relatedEntries = getSameID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
-                let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.都市計画名;
+                let wrongChoice = relatedEntries.pop().都市計画名;
                 if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
             }
 
@@ -254,7 +245,8 @@ function addMissedQuestion(questionObj) {
                 type: "multiple",
                 question: questionText,
                 choices: choices,
-                correct: correctAnswer
+                correct: correctAnswer,
+                id: entry.id  // ✅ IDを追加
             });
         }
     });
@@ -264,6 +256,7 @@ function addMissedQuestion(questionObj) {
 
     return questionsList;
 }
+
 
 function loadQuestion() {
     console.log('📌 loadQuestion() 実行');
