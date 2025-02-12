@@ -46,11 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
-    return data
-        .filter(q => q.groupId === targetGroupId && q[key] !== correctAnswer) // ID2 が完全一致
-        .sort(() => Math.random() - 0.5); // ランダムシャッフル
-}
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
         csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -91,6 +86,12 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
         return result;
     }
 
+function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
+    return data
+        .filter(q => q.groupId === targetGroupId && q[key] !== correctAnswer) // ID2 が完全一致
+        .sort(() => Math.random() - 0.5); // ランダムシャッフル
+}
+
 function generateQuestions(data) {
     let questionsList = [];
     console.log("📌 generateQuestions() の入力データ:", data);
@@ -116,8 +117,7 @@ function generateQuestions(data) {
             correctAnswer = entry.建築家;
             choices.push(correctAnswer);
 
-           // let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            let relatedEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
+            let relatedEntries = getSameID2Entries(data, entry.groupId, correctAnswer, "建築家");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
@@ -139,8 +139,7 @@ function generateQuestions(data) {
             correctAnswer = entry.都市計画名;
             choices.push(correctAnswer);
 
-            //let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            let relatedEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
+            let relatedEntries = getSameID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
@@ -163,7 +162,6 @@ function generateQuestions(data) {
 
     return questionsList;
 }
-
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
