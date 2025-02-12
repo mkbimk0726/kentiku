@@ -91,6 +91,37 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
         .filter(q => q.groupId === targetGroupId && q[key] !== correctAnswer) // ID2 が完全一致
         .sort(() => Math.random() - 0.5); // ランダムシャッフル
 }
+    function addMissedQuestion(questionObj) {
+    let newQuestion;
+    let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
+
+    if (questionObj.type === "truefalse") {
+        // 〇✕問題で間違えたら 4択問題に変える
+        newQuestion = {
+            type: "multiple",
+            question: `${questionObj.correctText} に関する正しい選択肢を選べ`,
+            choices: [questionObj.correct].concat(shuffleArray(["選択肢1", "選択肢2", "選択肢3"])), // ダミーを追加
+            correct: questionObj.correct
+        };
+    } else if (questionObj.type === "multiple") {
+        // 4択問題で間違えたら 〇✕問題に変える
+        newQuestion = {
+            type: "truefalse",
+            question: `${questionObj.correct} は正しいか？`,
+            correct: true,
+            correctText: questionObj.correct
+        };
+    }
+
+    // 20問以内なら挿入、超えるなら次回に出題
+    if (questions.length < 20) {
+        let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
+        questions.splice(insertIndex, 0, newQuestion);
+    } else {
+        missedQuestions.push(newQuestion);
+    }
+}
+
 
     function generateQuestions(data) {
     let questionsList = [];
