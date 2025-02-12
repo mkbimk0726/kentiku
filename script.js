@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let isTrueFalse = Math.random() < 0.5;
             let questionText, correctAnswer, choices = [];
 
-            if (isTrueFalse) {
+            if (questionType === 0) {
                 questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
                 correctAnswer = true;
 
