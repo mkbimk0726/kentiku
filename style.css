@@ -63,7 +63,7 @@ button:hover {
 
 /* 🔹 問題文の文字サイズを超特大に */
 #question-text {
-    font-size: 80px; /* 🔥 さらに大きく */
+    font-size: 60px; /* 🔥 さらに大きく */
     font-weight: bold;
     margin-bottom: 50px; /* 🔥 問題文とボタンの間隔を広げる */
 }
