@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     question: questionText,
                     correct: correctAnswer
                 });
-            } else {
+            }  else if (questionType === 1)  {
                 questionText = `${entry.都市計画名} は誰が設計したか？`;
                 correctAnswer = entry.建築家;
                 choices.push(correctAnswer);
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let randomEntry = relatedEntries.pop();
                     let wrongChoice = randomEntry.建築家;
                     if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                } else {
+                } else if (questionType === 2) {
                 questionText = ` ${entry.建築家} が ${entry.特徴1} つぎのうちどれか？`;
                 
                 correctAnswer = entry.都市計画名;
