@@ -92,13 +92,13 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
         .sort(() => Math.random() - 0.5); // ランダムシャッフル
 }
 
-function generateQuestions(data) {
+    function generateQuestions(data) {
     let questionsList = [];
     console.log("📌 generateQuestions() の入力データ:", data);
 
     data.forEach(entry => {
         let questionType = Math.floor(Math.random() * 3); // 0: 〇✕, 1: 建築家を問う, 2: 都市計画名を問う
-        let questionText, correctAnswer, choices = [];
+        let questionText, correctAnswer, correctText, choices = [];
 
         if (questionType === 0) {
             // ✅ 50%の確率で✕の問題を作る
@@ -112,21 +112,25 @@ function generateQuestions(data) {
                 if (wrongEntry && wrongFeature) {
                     questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}`;
                     correctAnswer = false;
+                    correctText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
                 } else {
                     // 他のデータがない場合は正しい問題にフォールバック
                     questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
                     correctAnswer = true;
+                    correctText = questionText;
                 }
             } else {
                 // ✅ 〇の問題（正しい情報）
                 questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
                 correctAnswer = true;
+                correctText = questionText;
             }
 
             questionsList.push({
                 type: "truefalse",
                 question: questionText,
-                correct: correctAnswer
+                correct: correctAnswer,
+                correctText: correctText
             });
 
         } else if (questionType === 1) {
@@ -192,7 +196,7 @@ function loadQuestion() {
         return;
     }
 
-           const questionObj = questions[currentQuestionIndex];
+    const questionObj = questions[currentQuestionIndex];
     console.log('📌 出題:', questionObj);
 
     document.getElementById("question-text").textContent = questionObj.question;
@@ -203,7 +207,7 @@ function loadQuestion() {
             const btn = document.createElement("button");
             btn.textContent = option;
             btn.classList.add("choice-btn");
-            btn.onclick = () => checkAnswer(index === 0 === questionObj.correct, questionObj.correct ? "〇" : "✕");
+            btn.onclick = () => checkAnswer(index === 0 === questionObj.correct, questionObj.correct ? "〇" : "✕", questionObj.correctText);
             document.getElementById("choices").appendChild(btn);
         });
     } else {
@@ -212,7 +216,7 @@ function loadQuestion() {
             btn.textContent = choice;
             btn.classList.add("choice-btn");
             btn.onclick = () => {
-                checkAnswer(choice === questionObj.correct, questionObj.correct);
+                checkAnswer(choice === questionObj.correct, questionObj.correct, questionObj.correct);
                 highlightCorrectAnswer(questionObj.correct);
             };
             document.getElementById("choices").appendChild(btn);
@@ -222,7 +226,6 @@ function loadQuestion() {
     document.getElementById("result").textContent = "";
     document.getElementById("next-question").style.display = "none";
 }
-
 function highlightCorrectAnswer(correctAnswer) {
     let buttons = document.querySelectorAll(".choice-btn");
     buttons.forEach(btn => {
@@ -238,9 +241,9 @@ document.getElementById("start-button").addEventListener("click", loadCSV);
 document.getElementById("next-question").addEventListener("click", loadQuestion);
 document.getElementById("restart-button").addEventListener("click", () => location.reload());
 
-function checkAnswer(isCorrect, correctAnswer) {
+function checkAnswer(isCorrect, correctAnswer, correctText) {
     let resultText = isCorrect ? "✅ 正解！" : "❌ 不正解！";
-    resultText += ` 正解は: ${correctAnswer}`;
+    resultText += ` 正解: ${correctText}`;
     
     document.getElementById("result").textContent = resultText;
     if (isCorrect) correctAnswers++;
