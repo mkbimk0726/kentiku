@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         data.forEach(entry => {
             let isTrueFalse = Math.random() < 0.5;
+            let questionType = Math.floor(Math.random() * 3); // 0: 〇✕, 1: 建築家を問う, 2: 都市計画名を問う
             let questionText, correctAnswer, choices = [];
 
             if (questionType === 0) {
