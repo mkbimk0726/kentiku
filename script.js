@@ -101,9 +101,27 @@ function generateQuestions(data) {
         let questionText, correctAnswer, choices = [];
 
         if (questionType === 0) {
-            // 〇✕ 問題
-            questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-            correctAnswer = true;
+            // ✅ 50%の確率で✕の問題を作る
+            let isFalse = Math.random() < 0.5;
+            
+            if (isFalse) {
+                // ❌ ✕の問題を作成（間違った建築家 or 特徴を入れる）
+                let wrongEntry = getSameID2Entries(data, entry.groupId, entry.建築家, "建築家").pop();
+                let wrongFeature = getSameID2Entries(data, entry.groupId, entry.特徴1, "特徴1").pop();
+
+                if (wrongEntry && wrongFeature) {
+                    questionText = `${entry.都市計画名} は ${wrongEntry.建築家} が ${wrongFeature.特徴1}`;
+                    correctAnswer = false;
+                } else {
+                    // 他のデータがない場合は正しい問題にフォールバック
+                    questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                    correctAnswer = true;
+                }
+            } else {
+                // ✅ 〇の問題（正しい情報）
+                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+                correctAnswer = true;
+            }
 
             questionsList.push({
                 type: "truefalse",
@@ -143,7 +161,7 @@ function generateQuestions(data) {
 
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
-                let wrongChoice = randomEntry.都市計画名; // 修正: 都市計画名を取得
+                let wrongChoice = randomEntry.都市計画名;
                 if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
             }
 
