@@ -138,8 +138,13 @@ function addMissedQuestion(questionObj) {
 
     } else if (questionObj.type === "truefalse") {
         // ✅ 〇✕問題で間違えた場合 → 4択問題に変換
-        let choices = [relatedEntry.建築家];
-        let wrongChoices = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.建築家, "建築家");
+
+        // 🔴 修正ポイント：関連データの取得を確実にする
+        let correctAnswer = relatedEntry.建築家;
+        let questionText = `${relatedEntry.都市計画名} は誰が設計したか？`;
+
+        let choices = [correctAnswer];
+        let wrongChoices = getSameID2Entries(questions, relatedEntry.groupId, correctAnswer, "建築家");
 
         while (choices.length < 4 && wrongChoices.length > 0) {
             let wrongChoice = wrongChoices.pop().建築家;
@@ -150,9 +155,9 @@ function addMissedQuestion(questionObj) {
 
         newQuestion = {
             type: "multiple",
-            question: `${relatedEntry.都市計画名} は誰が設計したか？`,
+            question: questionText,
             choices: choices,
-            correct: relatedEntry.建築家,
+            correct: correctAnswer,
             id: relatedEntry.id
         };
     }
@@ -163,7 +168,6 @@ function addMissedQuestion(questionObj) {
     let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
     questions.splice(insertIndex, 0, newQuestion);
 }
-
 
 
 function generateQuestions(data) {
