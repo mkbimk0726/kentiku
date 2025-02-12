@@ -91,7 +91,9 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
         .filter(q => q.groupId === targetGroupId && q[key] !== correctAnswer) // ID2 が完全一致
         .sort(() => Math.random() - 0.5); // ランダムシャッフル
 }
-    function addMissedQuestion(questionObj) {
+   let missedQuestions = [];
+
+function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
@@ -113,14 +115,13 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
         };
     }
 
-    // 20問以内なら挿入、超えるなら次回に出題
-    if (questions.length < 20) {
-        let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
-        questions.splice(insertIndex, 0, newQuestion);
-    } else {
-        missedQuestions.push(newQuestion);
-    }
+    console.log(`📌 再出題を追加: ${newQuestion.question} ( ${delay}問後 )`);
+
+    // 2〜6問後の適切な位置に追加（範囲を超えたら最後に追加）
+    let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
+    questions.splice(insertIndex, 0, newQuestion);
 }
+
 
 
     function generateQuestions(data) {
@@ -230,6 +231,13 @@ function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
 function loadQuestion() {
     console.log('📌 loadQuestion() 実行');
 
+    // もし `missedQuestions` に問題があり、ランダムで10%の確率で復活
+    if (missedQuestions.length > 0 && Math.random() < 0.1) {
+        let revivedQuestion = missedQuestions.shift();
+        console.log(`📌 過去の誤答問題を復活: ${revivedQuestion.question}`);
+        questions.splice(currentQuestionIndex, 0, revivedQuestion);
+    }
+
     if (currentQuestionIndex >= questions.length) {
         console.log("📌 全ての問題が終了しました。終了画面へ移行");
         document.getElementById("quiz-container").style.display = "none";
@@ -268,6 +276,7 @@ function loadQuestion() {
     document.getElementById("result").textContent = "";
     document.getElementById("next-question").style.display = "none";
 }
+
 function highlightCorrectAnswer(correctAnswer) {
     let buttons = document.querySelectorAll(".choice-btn");
     buttons.forEach(btn => {
@@ -289,14 +298,18 @@ function checkAnswer(isCorrect, correctAnswer, correctText) {
     resultText += ` 正解: ${correctText}`;
     
     document.getElementById("result").textContent = resultText;
-    if (isCorrect) correctAnswers++;
+    if (isCorrect) {
+        correctAnswers++;
+    } else {
+        // ❌ 間違えたら再出題リストに追加
+        addMissedQuestion(questions[currentQuestionIndex]);
+    }
     
-　　highlightCorrectAnswer(correctAnswer);
+    highlightCorrectAnswer(correctAnswer);
 
     currentQuestionIndex++;
     document.getElementById("next-question").style.display = "block";
 }
-
     document.getElementById("start-button").addEventListener("click", loadCSV);
     document.getElementById("next-question").addEventListener("click", loadQuestion);
     document.getElementById("restart-button").addEventListener("click", () => location.reload());
