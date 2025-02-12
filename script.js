@@ -45,7 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error('❌ CSV 読み込みエラー:', error);
         }
     }
-
+    
+    function getClosestID2Entries(data, targetGroupId, correctAnswer, key) {
+        return data
+            .filter(q => q.groupId !== targetGroupId && q[key] !== correctAnswer)
+            .sort((a, b) => Math.abs(a.groupId - targetGroupId) - Math.abs(b.groupId - targetGroupId));
+    }
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
         csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -109,6 +114,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 choices.push(correctAnswer);
 
                 let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
+                
+                while (choices.length < 4 && relatedEntries.length > 0) {
+                    let randomEntry = relatedEntries.pop();
+                    let wrongChoice = randomEntry.建築家;
+                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+                }else {
+                questionText = ` ${entry.建築家} が ${entry.特徴1} つぎのうちどれか？`;
+                
+                correctAnswer = entry.都市計画名;
+                choices.push(correctAnswer);
+
+                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
+                
                 while (choices.length < 4 && relatedEntries.length > 0) {
                     let randomEntry = relatedEntries.pop();
                     let wrongChoice = randomEntry.建築家;
