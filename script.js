@@ -46,11 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    function getClosestID2Entries(data, targetGroupId, correctAnswer, key) {
-        return data
-            .filter(q => q.groupId !== targetGroupId && q[key] !== correctAnswer)
-            .sort((a, b) => Math.abs(a.groupId - targetGroupId) - Math.abs(b.groupId - targetGroupId));
-    }
+function getClosestID2Entries(data, targetGroupId, correctAnswer, key) {
+    return data
+        .filter(q => Math.abs(q.groupId - targetGroupId) <= 2 && q[key] !== correctAnswer) // 🔥 groupIdが近いものを選択
+        .sort((a, b) => Math.abs(a.groupId - targetGroupId) - Math.abs(b.groupId - targetGroupId));
+}
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
         csvText = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -116,8 +116,8 @@ function generateQuestions(data) {
             correctAnswer = entry.建築家;
             choices.push(correctAnswer);
 
-            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
+           // let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+            let relatedEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
@@ -139,8 +139,8 @@ function generateQuestions(data) {
             correctAnswer = entry.都市計画名;
             choices.push(correctAnswer);
 
-            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-            let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
+            //let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+            let relatedEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
 
             while (choices.length < 4 && relatedEntries.length > 0) {
                 let randomEntry = relatedEntries.pop();
