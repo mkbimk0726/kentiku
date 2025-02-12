@@ -98,9 +98,7 @@ function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
-    // ✅ ここで `originalData` から正しいデータを取得
     let relatedEntry = originalData.find(q => q.id === questionObj.id);
-
     if (!relatedEntry) {
         console.error("❌ addMissedQuestion() で ID に対応するデータが見つかりませんでした:", questionObj.id);
         return;
@@ -128,7 +126,6 @@ function addMissedQuestion(questionObj) {
                 id: relatedEntry.id
             };
         }
-
     } else if (questionObj.type === "truefalse") {
         let correctAnswer = relatedEntry.建築家;
         let questionText = `${relatedEntry.都市計画名} は誰が設計したか？`;
@@ -154,8 +151,14 @@ function addMissedQuestion(questionObj) {
 
     console.log(`📌 再出題を追加: ${newQuestion.question} ( ${delay}問後 )`);
 
-    let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
-    questions.splice(insertIndex, 0, newQuestion);
+    // ✅ 20問を超えないように調整
+    if (questions.length < 20) {
+        let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
+        questions.splice(insertIndex, 0, newQuestion);
+    } else {
+        // もし20問を超えるなら `missedQuestions` に保存して、`loadQuestion()` でランダムに差し替える
+        missedQuestions.push(newQuestion);
+    }
 }
 
 function generateQuestions(data) {
@@ -253,18 +256,19 @@ function generateQuestions(data) {
 function loadQuestion() {
     console.log('📌 loadQuestion() 実行');
 
-    // もし `missedQuestions` に問題があり、ランダムで10%の確率で復活
-    if (missedQuestions.length > 0 && Math.random() < 0.1) {
+    // ✅ もし `missedQuestions` に問題があり、ランダムで5%の確率で差し替え
+    if (missedQuestions.length > 0 && Math.random() < 0.05) {
         let revivedQuestion = missedQuestions.shift();
         console.log(`📌 過去の誤答問題を復活: ${revivedQuestion.question}`);
-        questions.splice(currentQuestionIndex, 0, revivedQuestion);
+        let replaceIndex = Math.floor(Math.random() * questions.length);
+        questions[replaceIndex] = revivedQuestion; // ランダムな問題と差し替え
     }
 
-    if (currentQuestionIndex >= questions.length) {
+    if (currentQuestionIndex >= 20) {  // ✅ 20問で終了
         console.log("📌 全ての問題が終了しました。終了画面へ移行");
         document.getElementById("quiz-container").style.display = "none";
         document.getElementById("end-screen").style.display = "block";
-        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
+        document.getElementById("score").textContent = `正解数: ${correctAnswers} / 20`;
         return;
     }
 
@@ -287,10 +291,7 @@ function loadQuestion() {
             const btn = document.createElement("button");
             btn.textContent = choice;
             btn.classList.add("choice-btn");
-            btn.onclick = () => {
-                checkAnswer(choice === questionObj.correct, questionObj.correct, questionObj.correct);
-                highlightCorrectAnswer(questionObj.correct);
-            };
+            btn.onclick = () => checkAnswer(choice === questionObj.correct, questionObj.correct, questionObj.correct);
             document.getElementById("choices").appendChild(btn);
         });
     }
