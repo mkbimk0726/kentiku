@@ -181,51 +181,73 @@ function generateQuestions(data) {
     return questionsList;
 }
 
-    function loadQuestion() {
-        console.log('📌 loadQuestion() 実行');
+function loadQuestion() {
+    console.log('📌 loadQuestion() 実行');
 
-        if (currentQuestionIndex >= questions.length) {
-            console.log("📌 全ての問題が終了しました。終了画面へ移行");
-            document.getElementById("quiz-container").style.display = "none";
-            document.getElementById("end-screen").style.display = "block";
-            document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
-            return;
-        }
+    if (currentQuestionIndex >= questions.length) {
+        console.log("📌 全ての問題が終了しました。終了画面へ移行");
+        document.getElementById("quiz-container").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        document.getElementById("score").textContent = `正解数: ${correctAnswers} / ${questions.length}`;
+        return;
+    }
 
-        const questionObj = questions[currentQuestionIndex];
-        console.log('📌 出題:', questionObj);
+           const questionObj = questions[currentQuestionIndex];
+    console.log('📌 出題:', questionObj);
 
-        document.getElementById("question-text").textContent = questionObj.question;
-        document.getElementById("choices").innerHTML = "";
+    document.getElementById("question-text").textContent = questionObj.question;
+    document.getElementById("choices").innerHTML = "";
 
-        if (questionObj.type === "truefalse") {
-            ["〇", "✕"].forEach((option, index) => {
-                const btn = document.createElement("button");
-                btn.textContent = option;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(index === 0 === questionObj.correct);
-                document.getElementById("choices").appendChild(btn);
-            });
+    if (questionObj.type === "truefalse") {
+        ["〇", "✕"].forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.textContent = option;
+            btn.classList.add("choice-btn");
+            btn.onclick = () => checkAnswer(index === 0 === questionObj.correct, questionObj.correct ? "〇" : "✕");
+            document.getElementById("choices").appendChild(btn);
+        });
+    } else {
+        questionObj.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.textContent = choice;
+            btn.classList.add("choice-btn");
+            btn.onclick = () => {
+                checkAnswer(choice === questionObj.correct, questionObj.correct);
+                highlightCorrectAnswer(questionObj.correct);
+            };
+            document.getElementById("choices").appendChild(btn);
+        });
+    }
+
+    document.getElementById("result").textContent = "";
+    document.getElementById("next-question").style.display = "none";
+}
+
+function highlightCorrectAnswer(correctAnswer) {
+    let buttons = document.querySelectorAll(".choice-btn");
+    buttons.forEach(btn => {
+        if (btn.textContent === correctAnswer) {
+            btn.style.backgroundColor = "lightgreen"; // 正解をハイライト
         } else {
-            questionObj.choices.forEach(choice => {
-                const btn = document.createElement("button");
-                btn.textContent = choice;
-                btn.classList.add("choice-btn");
-                btn.onclick = () => checkAnswer(choice === questionObj.correct);
-                document.getElementById("choices").appendChild(btn);
-            });
+            btn.style.backgroundColor = "lightcoral"; // 不正解は赤く
         }
+    });
+}
 
-        document.getElementById("result").textContent = "";
-        document.getElementById("next-question").style.display = "none";
-    }
+document.getElementById("start-button").addEventListener("click", loadCSV);
+document.getElementById("next-question").addEventListener("click", loadQuestion);
+document.getElementById("restart-button").addEventListener("click", () => location.reload());
 
-    function checkAnswer(isCorrect) {
-        document.getElementById("result").textContent = isCorrect ? "正解！" : "不正解！";
-        if (isCorrect) correctAnswers++;
-        currentQuestionIndex++;
-        document.getElementById("next-question").style.display = "block";
-    }
+function checkAnswer(isCorrect, correctAnswer) {
+    let resultText = isCorrect ? "✅ 正解！" : "❌ 不正解！";
+    resultText += ` 正解は: ${correctAnswer}`;
+    
+    document.getElementById("result").textContent = resultText;
+    if (isCorrect) correctAnswers++;
+
+    currentQuestionIndex++;
+    document.getElementById("next-question").style.display = "block";
+}
 
     document.getElementById("start-button").addEventListener("click", loadCSV);
     document.getElementById("next-question").addEventListener("click", loadQuestion);
