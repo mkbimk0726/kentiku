@@ -46,10 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-function getClosestID2Entries(data, targetGroupId, correctAnswer, key) {
+function getSameID2Entries(data, targetGroupId, correctAnswer, key) {
     return data
-        .filter(q => Math.abs(q.groupId - targetGroupId) <= 2 && q[key] !== correctAnswer) // 🔥 groupIdが近いものを選択
-        .sort((a, b) => Math.abs(a.groupId - targetGroupId) - Math.abs(b.groupId - targetGroupId));
+        .filter(q => q.groupId === targetGroupId && q[key] !== correctAnswer) // ID2 が完全一致
+        .sort(() => Math.random() - 0.5); // ランダムシャッフル
 }
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
