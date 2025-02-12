@@ -91,67 +91,79 @@ document.addEventListener("DOMContentLoaded", () => {
         return result;
     }
 
-    function generateQuestions(data) {
-        let questionsList = [];
-        console.log("📌 generateQuestions() の入力データ:", data);
+function generateQuestions(data) {
+    let questionsList = [];
+    console.log("📌 generateQuestions() の入力データ:", data);
 
-        data.forEach(entry => {
-            let isTrueFalse = Math.random() < 0.5;
-            let questionType = Math.floor(Math.random() * 3); // 0: 〇✕, 1: 建築家を問う, 2: 都市計画名を問う
-            let questionText, correctAnswer, choices = [];
+    data.forEach(entry => {
+        let questionType = Math.floor(Math.random() * 3); // 0: 〇✕, 1: 建築家を問う, 2: 都市計画名を問う
+        let questionText, correctAnswer, choices = [];
 
-            if (questionType === 0) {
-                questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
-                correctAnswer = true;
+        if (questionType === 0) {
+            // 〇✕ 問題
+            questionText = `${entry.都市計画名} は ${entry.建築家} が ${entry.特徴1}`;
+            correctAnswer = true;
 
-                questionsList.push({
-                    type: "truefalse",
-                    question: questionText,
-                    correct: correctAnswer
-                });
-            }  else if (questionType === 1)  {
-                questionText = `${entry.都市計画名} は誰が設計したか？`;
-                correctAnswer = entry.建築家;
-                choices.push(correctAnswer);
+            questionsList.push({
+                type: "truefalse",
+                question: questionText,
+                correct: correctAnswer
+            });
 
-                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
-                
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.建築家;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                } }else if (questionType === 2) {
-                questionText = ` ${entry.建築家} が ${entry.特徴1} つぎのうちどれか？`;
-                
-                correctAnswer = entry.都市計画名;
-                choices.push(correctAnswer);
+        } else if (questionType === 1) {
+            // 建築家を問う問題
+            questionText = `${entry.都市計画名} は誰が設計したか？`;
+            correctAnswer = entry.建築家;
+            choices.push(correctAnswer);
 
-                let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
-                let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
-                
-                while (choices.length < 4 && relatedEntries.length > 0) {
-                    let randomEntry = relatedEntries.pop();
-                    let wrongChoice = randomEntry.建築家;
-                    if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
-                }}
+            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+            let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "建築家");
 
-                choices = shuffleArray(choices); 
-
-                questionsList.push({
-                    type: "multiple",
-                    question: questionText,
-                    choices: choices,
-                    correct: correctAnswer
-                });
+            while (choices.length < 4 && relatedEntries.length > 0) {
+                let randomEntry = relatedEntries.pop();
+                let wrongChoice = randomEntry.建築家;
+                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
             }
-        });
 
-        questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
-        console.log("📌 ランダムに選択された問題リスト:", questionsList);
+            choices = shuffleArray(choices);
+            questionsList.push({
+                type: "multiple",
+                question: questionText,
+                choices: choices,
+                correct: correctAnswer
+            });
 
-        return questionsList;
-    }
+        } else if (questionType === 2) {
+            // 都市計画名を問う問題
+            questionText = `${entry.建築家} が ${entry.特徴1} に関わった都市計画はどれ？`;
+            correctAnswer = entry.都市計画名;
+            choices.push(correctAnswer);
+
+            let relatedEntries = data.filter(q => q.groupId !== entry.groupId);
+            let extraEntries = getClosestID2Entries(data, entry.groupId, correctAnswer, "都市計画名");
+
+            while (choices.length < 4 && relatedEntries.length > 0) {
+                let randomEntry = relatedEntries.pop();
+                let wrongChoice = randomEntry.都市計画名; // 修正: 都市計画名を取得
+                if (!choices.includes(wrongChoice)) choices.push(wrongChoice);
+            }
+
+            choices = shuffleArray(choices);
+            questionsList.push({
+                type: "multiple",
+                question: questionText,
+                choices: choices,
+                correct: correctAnswer
+            });
+        }
+    });
+
+    questionsList = questionsList.sort(() => Math.random() - 0.5).slice(0, 20);
+    console.log("📌 ランダムに選択された問題リスト:", questionsList);
+
+    return questionsList;
+}
+
 
     function loadQuestion() {
         console.log('📌 loadQuestion() 実行');
