@@ -31,7 +31,7 @@ button {
     width: 90%; /* 画面幅にフィット */
     margin: 30px auto; /* 🔥 ボタン間の間隔を広げる */
     padding: 50px; /* 🔥 高さをさらに増やす */
-    font-size: 64px; /* 🔥 文字を超特大に */
+    font-size: 40px; /* 🔥 文字を超特大に */
     cursor: pointer;
     border: none;
     border-radius: 12px;
@@ -50,7 +50,7 @@ button:hover {
     width: 100%;
     margin: 40px 0; /* 🔥 ボタンの間隔を広げる */
     padding: 50px; /* 🔥 高さをさらに増やす */
-    font-size: 64px; /* 🔥 文字を超特大に */
+    font-size: 40px; /* 🔥 文字を超特大に */
     background-color: #007bff; /* 🔵 青 */
     color: white;
     border: none;
