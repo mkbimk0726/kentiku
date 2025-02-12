@@ -5,46 +5,47 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
 
-    async function loadCSV() {
-        console.log('📌 loadCSV() が実行されました');
-        try {
-            const response = await fetch("/questions.csv");
-            if (!response.ok) {
-                throw new Error(`HTTPエラー: ${response.status}`);
-            }
+// ✅ まず、グローバル変数を定義
+let originalData = []; // CSVの元データを保存
 
-            const text = await response.text();
-            console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`);
-
-            let parsedData = parseCSV(text);
-
-            if (!parsedData || parsedData.length === 0) {
-                throw new Error("CSVのパース結果が空です");
-            }
-
-            console.log('📌 CSV パース後:', parsedData);
-            questions = generateQuestions(parsedData);
-
-            if (questions.length > 0) {
-                console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
-
-                // ✅ スタートボタンを非表示
-                document.getElementById("start-button").style.display = "none";  
-
-                // ✅ クイズコンテナを表示
-                document.getElementById("quiz-container").style.display = "block";  
-
-                // ✅ 最初の問題を表示
-                currentQuestionIndex = 0;
-                correctAnswers = 0;
-                loadQuestion();
-            } else {
-                console.error("❌ 問題が生成されませんでした");
-            }
-        } catch (error) {
-            console.error('❌ CSV 読み込みエラー:', error);
+async function loadCSV() {
+    console.log('📌 loadCSV() が実行されました');
+    try {
+        const response = await fetch("/questions.csv");
+        if (!response.ok) {
+            throw new Error(`HTTPエラー: ${response.status}`);
         }
+
+        const text = await response.text();
+        console.log(`📌 CSV 取得内容 (先頭200文字): ${text.slice(0, 200)}`);
+
+        originalData = parseCSV(text); // ✅ グローバル変数に保存
+
+        if (!originalData || originalData.length === 0) {
+            throw new Error("CSVのパース結果が空です");
+        }
+
+        console.log('📌 CSV パース後:', originalData);
+        questions = generateQuestions(originalData); // ✅ `originalData` を使う
+
+        if (questions.length > 0) {
+            console.log("📌 質問データが正常に作成されました。最初の質問を読み込みます");
+
+            document.getElementById("start-button").style.display = "none";  
+            document.getElementById("quiz-container").style.display = "block";  
+
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            loadQuestion();
+        } else {
+            console.error("❌ 問題が生成されませんでした");
+        }
+    } catch (error) {
+        console.error('❌ CSV 読み込みエラー:', error);
     }
+}
+
+   
     
     function parseCSV(csvText) {
         console.log('📌 parseCSV() 実行');
@@ -97,7 +98,7 @@ function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
-    // ✅ 【修正】元のデータリスト `originalData` から ID を使って取得する
+    // ✅ ここで `originalData` から正しいデータを取得
     let relatedEntry = originalData.find(q => q.id === questionObj.id);
 
     if (!relatedEntry) {
@@ -106,7 +107,6 @@ function addMissedQuestion(questionObj) {
     }
 
     if (questionObj.type === "multiple") {
-        // ✅ 4択問題で間違えた場合 → 〇✕問題に変換
         let isFalse = Math.random() < 0.5;
         let wrongEntry = getSameID2Entries(originalData, relatedEntry.groupId, relatedEntry.建築家, "建築家").pop();
         let wrongFeature = getSameID2Entries(originalData, relatedEntry.groupId, relatedEntry.特徴1, "特徴1").pop();
@@ -130,7 +130,6 @@ function addMissedQuestion(questionObj) {
         }
 
     } else if (questionObj.type === "truefalse") {
-        // ✅ 〇✕問題で間違えた場合 → 4択問題に変換
         let correctAnswer = relatedEntry.建築家;
         let questionText = `${relatedEntry.都市計画名} は誰が設計したか？`;
 
@@ -155,7 +154,6 @@ function addMissedQuestion(questionObj) {
 
     console.log(`📌 再出題を追加: ${newQuestion.question} ( ${delay}問後 )`);
 
-    // 2〜6問後の適切な位置に追加
     let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
     questions.splice(insertIndex, 0, newQuestion);
 }
