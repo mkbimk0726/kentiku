@@ -97,26 +97,19 @@ function addMissedQuestion(questionObj) {
     let newQuestion;
     let delay = Math.floor(Math.random() * 5) + 2; // 2〜6問後に再出題
 
-    // ✅ IDが undefined でないことを確認
-    if (!questionObj.id) {
-        console.error("❌ addMissedQuestion() で ID が undefined: ", questionObj);
-        return;
-    }
-
-    // ✅ 元のデータを取得
-    let relatedEntries = questions.filter(q => q.id === questionObj.id);
-    let relatedEntry = relatedEntries.length > 0 ? relatedEntries[0] : null;
+    // ✅ 【修正】元のデータリスト `originalData` から ID を使って取得する
+    let relatedEntry = originalData.find(q => q.id === questionObj.id);
 
     if (!relatedEntry) {
-        console.warn("⚠ 元データが見つからなかったため、再出題をスキップ", questionObj);
+        console.error("❌ addMissedQuestion() で ID に対応するデータが見つかりませんでした:", questionObj.id);
         return;
     }
 
     if (questionObj.type === "multiple") {
         // ✅ 4択問題で間違えた場合 → 〇✕問題に変換
         let isFalse = Math.random() < 0.5;
-        let wrongEntry = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.建築家, "建築家").pop();
-        let wrongFeature = getSameID2Entries(questions, relatedEntry.groupId, relatedEntry.特徴1, "特徴1").pop();
+        let wrongEntry = getSameID2Entries(originalData, relatedEntry.groupId, relatedEntry.建築家, "建築家").pop();
+        let wrongFeature = getSameID2Entries(originalData, relatedEntry.groupId, relatedEntry.特徴1, "特徴1").pop();
 
         if (isFalse && wrongEntry && wrongFeature) {
             newQuestion = {
@@ -138,13 +131,11 @@ function addMissedQuestion(questionObj) {
 
     } else if (questionObj.type === "truefalse") {
         // ✅ 〇✕問題で間違えた場合 → 4択問題に変換
-
-        // 🔴 修正ポイント：関連データの取得を確実にする
         let correctAnswer = relatedEntry.建築家;
         let questionText = `${relatedEntry.都市計画名} は誰が設計したか？`;
 
         let choices = [correctAnswer];
-        let wrongChoices = getSameID2Entries(questions, relatedEntry.groupId, correctAnswer, "建築家");
+        let wrongChoices = getSameID2Entries(originalData, relatedEntry.groupId, correctAnswer, "建築家");
 
         while (choices.length < 4 && wrongChoices.length > 0) {
             let wrongChoice = wrongChoices.pop().建築家;
@@ -168,7 +159,6 @@ function addMissedQuestion(questionObj) {
     let insertIndex = Math.min(currentQuestionIndex + delay, questions.length);
     questions.splice(insertIndex, 0, newQuestion);
 }
-
 
 function generateQuestions(data) {
     let questionsList = [];
