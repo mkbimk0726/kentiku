@@ -1,85 +1,87 @@
-/* 🔹 全体のフォントサイズを統一して大きく */
+/* 🔹 全体のフォント設定 */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    word-break: break-word; /* 画面に収まるように改行 */
+    overflow-wrap: break-word;
 }
 
 /* 🔹 コンテンツ全体を中央に配置 */
 .container {
     width: 90%;
-    max-width: 1000px; /* PCでもスマホでも大きく見やすく */
+    max-width: 1000px;
     margin: 50px auto;
     background: white;
-    padding: 50px; /* 🔥 余白をさらに増やす */
+    padding: 50px;
     border-radius: 12px;
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* 🔹 タイトル（h1）の文字を大きくする */
+/* 🔹 タイトル（h1）の文字サイズを調整 */
 h1 {
-    font-size: 72px; /* 🔥 タイトルの文字をかなり大きく */
+    font-size: clamp(24px, 6vw, 72px); /* 最小 24px、通常 6vw、最大 72px */
     font-weight: bold;
     margin-bottom: 40px;
 }
 
-/* 🔹 すべてのボタンを統一（青色 + 間隔を広げる） */
+/* 🔹 すべてのボタンを統一 */
 button {
     display: block;
-    width: 90%; /* 画面幅にフィット */
-    margin: 30px auto; /* 🔥 ボタン間の間隔を広げる */
-    padding: 30px; /* 🔥 高さをさらに増やす */
-    font-size: 40px; /* 🔥 文字を超特大に */
+    width: 90%;
+    margin: 30px auto;
+    padding: clamp(10px, 4vw, 30px);  /* ボタンの高さを調整 */
+    font-size: clamp(16px, 4vw, 40px); /* 文字サイズを調整 */
     cursor: pointer;
     border: none;
     border-radius: 12px;
-    background-color: #007bff; /* 🔵 青 */
+    background-color: #007bff;
     color: white;
     transition: background 0.3s ease;
 }
 
 button:hover {
-    background-color: #0056b3; /* 🔵 少し暗い青 */
+    background-color: #0056b3;
 }
 
 /* 🔹 選択肢ボタン（〇✕や4択） */
 .choice-btn {
     display: block;
     width: 100%;
-    margin: 40px 0; /* 🔥 ボタンの間隔を広げる */
-    padding: 30px; /* 🔥 高さをさらに増やす */
-    font-size: 40px; /* 🔥 文字を超特大に */
-    background-color: #007bff; /* 🔵 青 */
+    margin: 40px 0;
+    padding: clamp(10px, 4vw, 30px);
+    font-size: clamp(16px, 4vw, 40px);
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 12px;
 }
 
 .choice-btn:hover {
-    background-color: #0056b3; /* 🔵 少し暗い青 */
+    background-color: #0056b3;
 }
 
-/* 🔹 問題文の文字サイズを超特大に */
+/* 🔹 問題文のフォントサイズ */
 #question-text {
-    font-size: 50px; /* 🔥 さらに大きく */
+    font-size: clamp(18px, 5vw, 50px);
     font-weight: bold;
-    margin-bottom: 50px; /* 🔥 問題文とボタンの間隔を広げる */
+    margin-bottom: 50px;
 }
 
-/* 🔹 結果の文字サイズも大きく */
+/* 🔹 結果のフォントサイズ */
 #result {
-    font-size: 40px; /* 🔥 大きく */
+    font-size: clamp(16px, 4vw, 40px);
     font-weight: bold;
-    color: #ff4500; /* 赤で強調 */
+    color: #ff4500;
 }
 
-/* 🔹 解説の文字サイズを大きく */
+/* 🔹 解説のフォントサイズ */
 #explanation {
-    font-size: 40px;
+    font-size: clamp(14px, 3.5vw, 40px);
     color: #555;
-    margin-top: 40px; /* 🔥 上下の余白を広げる */
+    margin-top: 40px;
 }
 
 /* 🔹 クイズ画面の中央配置 */
@@ -94,8 +96,9 @@ button:hover {
     margin-top: 40px;
 }
 
+/* 🔹 スコアのフォントサイズ */
 #score {
-    font-size: 64px;
+    font-size: clamp(24px, 5vw, 64px);
     font-weight: bold;
     color: #333;
     margin-top: 40px;
