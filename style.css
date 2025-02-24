@@ -27,30 +27,22 @@ h1 {
     margin-bottom: 40px;
 }
 
-/* 🔹 すべてのボタンを統一 */
-/* 🔹 すべてのボタンの間隔を調整 */
+/* 🔹 すべてのボタンのデザインを統一（色が消えないように修正） */
 button {
-    margin: 20px auto; /* 🔥 デフォルトの間隔を狭くする（30px → 20px） */
+    display: block;
+    width: 90%;
+    margin: 20px auto;
+    padding: clamp(10px, 4vw, 30px);
+    font-size: clamp(16px, 4vw, 40px);
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    background-color: #007bff; /* 🔵 ボタンの背景色 */
+    color: white;
+    transition: background 0.3s ease;
 }
 
-/* 🔹 選択肢ボタン（〇✕や4択）の間隔を調整 */
-.choice-btn {
-    margin: 20px 0; /* 🔥 ボタンの間隔を狭くする（40px → 20px） */
-}
-
-/* 🔹 スマホ専用のボタン間隔をさらに狭く */
-@media (max-width: 600px) {
-    button {
-        margin: 15px auto; /* 🔥 スマホではさらに間隔を狭く */
-        padding: clamp(8px, 3vw, 25px); /* 🔥 押しやすさを維持しつつコンパクトに */
-    }
-
-    .choice-btn {
-        margin: 15px 0; /* 🔥 スマホではさらに狭く */
-        padding: clamp(8px, 3vw, 25px);
-    }
-}
-
+/* 🔹 ホバー時の色 */
 button:hover {
     background-color: #0056b3;
 }
@@ -59,7 +51,7 @@ button:hover {
 .choice-btn {
     display: block;
     width: 100%;
-    margin: 40px 0;
+    margin: 20px 0;
     padding: clamp(10px, 4vw, 30px);
     font-size: clamp(16px, 4vw, 40px);
     background-color: #007bff;
@@ -111,4 +103,17 @@ button:hover {
     font-weight: bold;
     color: #333;
     margin-top: 40px;
+}
+
+/* 🔹 スマホ版のボタンの間隔をさらに狭く */
+@media (max-width: 600px) {
+    button {
+        margin: 10px auto; /* 🔥 さらに狭く（15px → 10px） */
+        padding: clamp(6px, 3vw, 20px); /* 🔥 高さもコンパクトに */
+    }
+
+    .choice-btn {
+        margin: 10px 0; /* 🔥 さらに狭く（15px → 10px） */
+        padding: clamp(6px, 3vw, 20px);
+    }
 }
