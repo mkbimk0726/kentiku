@@ -28,18 +28,27 @@ h1 {
 }
 
 /* 🔹 すべてのボタンを統一 */
+/* 🔹 すべてのボタンの間隔を調整 */
 button {
-    display: block;
-    width: 90%;
-    margin: 30px auto;
-    padding: clamp(10px, 4vw, 30px);  /* ボタンの高さを調整 */
-    font-size: clamp(16px, 4vw, 40px); /* 文字サイズを調整 */
-    cursor: pointer;
-    border: none;
-    border-radius: 12px;
-    background-color: #007bff;
-    color: white;
-    transition: background 0.3s ease;
+    margin: 20px auto; /* 🔥 デフォルトの間隔を狭くする（30px → 20px） */
+}
+
+/* 🔹 選択肢ボタン（〇✕や4択）の間隔を調整 */
+.choice-btn {
+    margin: 20px 0; /* 🔥 ボタンの間隔を狭くする（40px → 20px） */
+}
+
+/* 🔹 スマホ専用のボタン間隔をさらに狭く */
+@media (max-width: 600px) {
+    button {
+        margin: 15px auto; /* 🔥 スマホではさらに間隔を狭く */
+        padding: clamp(8px, 3vw, 25px); /* 🔥 押しやすさを維持しつつコンパクトに */
+    }
+
+    .choice-btn {
+        margin: 15px 0; /* 🔥 スマホではさらに狭く */
+        padding: clamp(8px, 3vw, 25px);
+    }
 }
 
 button:hover {
